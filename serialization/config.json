@@ -1,0 +1,15 @@
+{
+    "dataset_reader": "templi.dataset_readers.templi_dataset_reader.TempliDatasetReader",
+    "model": "templi.models.templi_semantic_parser.TempliSemanticParser",
+    "train_data_path": "/mnt/AAI_Project/temli/data/sentences_logical_forms.json",
+    "trainer": {
+        "cuda_device": 0,
+        "num_epochs": 10000,
+        "optimizer": {
+            "type": "sgd",
+            "lr": 0.01
+        },
+        "patience": 10
+    },
+    "data_loader": "templi.dataset_readers.templi_data_loader.TempliDataLoader"
+}
