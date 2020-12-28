@@ -13,19 +13,23 @@ from allennlp.modules import (
     TextFieldEmbedder,
 )
 
-from allennlp_semparse.domain_languages import WikiTablesLanguage
+from templi.templi_languages.templi_language import TempliLanguage
 from allennlp_semparse.fields.production_rule_field import ProductionRuleArray
-from allennlp_semparse.models.wikitables.wikitables_semantic_parser import WikiTablesSemanticParser
+from templi.models.templi_semantic_parser import TempliSemanticParser
 from allennlp_semparse.state_machines import BeamSearch
 from allennlp_semparse.state_machines.states import GrammarBasedState
 from allennlp_semparse.state_machines.trainers import MaximumMarginalLikelihood
-from allennlp_semparse.state_machines.transition_functions import LinkingTransitionFunction
+from allennlp_semparse.state_machines.transition_functions import (
+    LinkingTransitionFunction,
+)
+from templi.templi_languages.templi_language import TempliLanguage
+from templi.models.bert_multiway_match import BertMultiwayMatch
 
 
 @Model.register("wikitables_mml_parser")
-class WikiTablesMmlSemanticParser(WikiTablesSemanticParser):
+class TempliMmlSemanticParser(TempliSemanticParser):
     """
-    A ``WikiTablesMmlSemanticParser`` is a :class:`WikiTablesSemanticParser` which is trained to
+    A ``WikiTablesMmlSemanticParser`` is a :class:`TempliSemanticParser` which is trained to
     maximize the marginal likelihood of an approximate set of logical forms which give the correct
     denotation. This is a re-implementation of the model used for the paper `Neural Semantic Parsing with Type
     Constraints for Semi-Structured Tables
@@ -36,7 +40,6 @@ class WikiTablesMmlSemanticParser(WikiTablesSemanticParser):
 
     Parameters
     ----------
-    vocab : ``Vocabulary``
     question_embedder : ``TextFieldEmbedder``
         Embedder for questions. Passed to super class.
     action_embedding_dim : ``int``
@@ -87,8 +90,8 @@ class WikiTablesMmlSemanticParser(WikiTablesSemanticParser):
 
     def __init__(
         self,
+        bert_model: str,
         vocab: Vocabulary,
-        question_embedder: TextFieldEmbedder,
         action_embedding_dim: int,
         encoder: Seq2SeqEncoder,
         entity_encoder: Seq2VecEncoder,
@@ -105,11 +108,10 @@ class WikiTablesMmlSemanticParser(WikiTablesSemanticParser):
     ) -> None:
         use_similarity = use_neighbor_similarity_for_linking
         super().__init__(
+            bert_model=bert_model,
             vocab=vocab,
-            question_embedder=question_embedder,
             action_embedding_dim=action_embedding_dim,
             encoder=encoder,
-            entity_encoder=entity_encoder,
             max_decoding_steps=max_decoding_steps,
             add_action_bias=add_action_bias,
             use_neighbor_similarity_for_linking=use_similarity,
@@ -132,10 +134,8 @@ class WikiTablesMmlSemanticParser(WikiTablesSemanticParser):
     def forward(
         self,  # type: ignore
         question: Dict[str, torch.LongTensor],
-        table: Dict[str, torch.LongTensor],
-        world: List[WikiTablesLanguage],
+        world: List[TempliLanguage],
         actions: List[List[ProductionRuleArray]],
-        target_values: List[List[str]] = None,
         target_action_sequences: torch.LongTensor = None,
         metadata: List[Dict[str, Any]] = None,
     ) -> Dict[str, torch.Tensor]:
@@ -155,9 +155,9 @@ class WikiTablesMmlSemanticParser(WikiTablesSemanticParser):
             ``KnowledgeGraphField``.  This output is similar to a ``TextField`` output, where each
             entity in the table is treated as a "token", and we will use a ``TextFieldEmbedder`` to
             get embeddings for each entity.
-        world : ``List[WikiTablesLanguage]``
-            We use a ``MetadataField`` to get the ``WikiTablesLanguage`` object for each input instance.
-            Because of how ``MetadataField`` works, this gets passed to us as a ``List[WikiTablesLanguage]``,
+        world : ``List[TempliLanguage]``
+            We use a ``MetadataField`` to get the ``TempliLanguage`` object for each input instance.
+            Because of how ``MetadataField`` works, this gets passed to us as a ``List[TempliLanguage]``,
         actions : ``List[List[ProductionRuleArray]]``
             A list of all possible actions for each ``world`` in the batch, indexed into a
             ``ProductionRuleArray`` using a ``ProductionRuleField``.  We will embed all of these
@@ -175,7 +175,7 @@ class WikiTablesMmlSemanticParser(WikiTablesSemanticParser):
         """
         outputs: Dict[str, Any] = {}
         rnn_state, grammar_state = self._get_initial_rnn_and_grammar_state(
-            question, table, world, actions, outputs
+            question, world, actions, outputs
         )
         batch_size = len(rnn_state)
         initial_score = rnn_state[0].hidden_state.new_zeros(batch_size)
@@ -200,19 +200,26 @@ class WikiTablesMmlSemanticParser(WikiTablesSemanticParser):
 
         if self.training:
             return self._decoder_trainer.decode(
-                initial_state, self._decoder_step, (target_action_sequences, target_mask)
+                initial_state,
+                self._decoder_step,
+                (target_action_sequences, target_mask),
             )
         else:
             if target_action_sequences is not None:
                 outputs["loss"] = self._decoder_trainer.decode(
-                    initial_state, self._decoder_step, (target_action_sequences, target_mask)
+                    initial_state,
+                    self._decoder_step,
+                    (target_action_sequences, target_mask),
                 )["loss"]
             num_steps = self._max_decoding_steps
             # This tells the state to start keeping track of debug info, which we'll pass along in
             # our output dictionary.
             initial_state.debug_info = [[] for _ in range(batch_size)]
             best_final_states = self._beam_search.search(
-                num_steps, initial_state, self._decoder_step, keep_final_unfinished_states=False
+                num_steps,
+                initial_state,
+                self._decoder_step,
+                keep_final_unfinished_states=False,
             )
             for i in range(batch_size):
                 # Decoding may not have terminated with any completed logical forms, if `num_steps`

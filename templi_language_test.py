@@ -3,7 +3,7 @@ from allennlp.data.tokenizers import SpacyTokenizer
 import timeit
 from allennlp.common import Params
 from allennlp_semparse.common import Date, ExecutionError
-from templi.templi_languages.templi_language import Templi_Language, TempliTimeContext
+from templi.templi_languages.templilanguage import TempliLanguage, TempliTimeContext
 from templi.dataset_converters.search_timeml_logical_forms import get_all_valid_logical_forms, get_valid_logical_forms
 from ortools.linear_solver import pywraplp
 from templi.templi_languages.allen_algebra import infer_relation

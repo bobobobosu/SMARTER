@@ -33,7 +33,7 @@ from torch import nn
 from torch.autograd import Variable
 from torch.nn import CrossEntropyLoss
 import torch.nn.functional as F
-
+from templi.dataset_readers.file_utils import cached_path
 
 logger = logging.getLogger(__name__)
 
@@ -1233,6 +1233,7 @@ class BertMultiwayMatch(PreTrainedBertModel):
     def __init__(self, config, num_choices=4):
         super(BertMultiwayMatch, self).__init__(config)
         self.num_choices = num_choices
+        self.config = config
         self.bert = BertModel(config)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.linear_trans = nn.Linear(config.hidden_size, config.hidden_size)
@@ -1316,4 +1317,7 @@ class BertMultiwayMatch(PreTrainedBertModel):
         loss = 0.0
 
         return weighted_passage, loss  # loss is given only if it's training mode
+
+    def get_output_dim(self) -> int:
+        return self.config.hidden_size
 

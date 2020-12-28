@@ -2,7 +2,7 @@ import json
 from tqdm import tqdm
 from templi.templi_languages.allen_algebra import converse, timeml_to_uci
 from typing import Dict, Tuple
-from templi.templi_languages.templi_language import Templi_Language, TempliTimeContext
+from templi.templi_languages.templilanguage import TempliLanguage, TempliTimeContext
 
 from allennlp_semparse.common.action_space_walker import ActionSpaceWalker
 from functools import reduce
@@ -39,7 +39,7 @@ def get_all_valid_logical_forms():
             # generate possible logical forms
             target_vars = temp_vars.difference({main_var})
             context = TempliTimeContext(temp_vars=target_vars)
-            world = Templi_Language(context)
+            world = TempliLanguage(context)
             walker = ActionSpaceWalker(world, max_path_length=10)
             all_logical_forms = walker.get_all_logical_forms(max_num_logical_forms=1000)
 
@@ -109,7 +109,7 @@ def logical_forms_of_sentence(sentence_rels: Tuple):
         # generate possible logical forms
         target_vars = temp_vars.difference({main_var})
         context = TempliTimeContext(temp_vars=target_vars)
-        world = Templi_Language(context)
+        world = TempliLanguage(context)
         walker = ActionSpaceWalker(world, max_path_length=5)
         all_logical_forms = walker.get_all_logical_forms(max_num_logical_forms=5000)
 

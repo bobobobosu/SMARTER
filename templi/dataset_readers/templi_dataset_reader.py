@@ -16,12 +16,14 @@ from allennlp.data.tokenizers import Tokenizer, SpacyTokenizer
 from allennlp.data.token_indexers import SingleIdTokenIndexer
 from allennlp.data.token_indexers.token_indexer import TokenIndexer
 from allennlp.data.tokenizers import Tokenizer, SpacyTokenizer
-from templi.templi_languages.templi_language import Templi_Language, TempliTimeContext
+from templi.templi_languages.templi_language import TempliLanguage, TempliTimeContext
 
 from allennlp_semparse.common import ParsingError
 from allennlp_semparse.fields import KnowledgeGraphField, ProductionRuleField
 
 from templi.dataset_readers.tokenization import BertTokenizer
+
+logger = logging.getLogger(__name__)
 
 
 @DatasetReader.register("templi")
@@ -68,7 +70,10 @@ class TempliDatasetReader(DatasetReader):
                             "logical_forms": answer["logical_forms"],
                         }
                         self.sentences_logical_forms.append(one_data)
-        return map(lambda x: self.text_to_instance(x), self.sentences_logical_forms)
+        return filter(
+            None.__ne__,
+            map(lambda x: self.text_to_instance(x), self.sentences_logical_forms),
+        )
 
     """
     This function converts one data to an Instance (which contains Dict[str,Field])
@@ -84,7 +89,7 @@ class TempliDatasetReader(DatasetReader):
 
         # Word Field contains the language used by this data
         context = TempliTimeContext(temp_vars=one_data["temp_vars"])
-        world = Templi_Language(context)
+        world = TempliLanguage(context)
         world_field = MetadataField(world)
 
         # Production Rule Field contains the production rules possible from this world
@@ -97,11 +102,48 @@ class TempliDatasetReader(DatasetReader):
             production_rule_fields.append(field)
         action_field = ListField(production_rule_fields)
 
+        # Target Action Sequence Field contains possible actions from generated logical forms
+        action_map = {
+            action.rule: i for i, action in enumerate(action_field.field_list)
+        }  # type: ignore
+        # We'll make each target action sequence a List[IndexField], where the index is into
+        # the action list we made above.  We need to ignore the type here because mypy doesn't
+        # like `action.rule` - it's hard to tell mypy that the ListField is made up of
+        # ProductionRuleFields.
+        if one_data["logical_forms"]:
+            action_sequence_fields: List[Field] = []
+            for logical_form in one_data["logical_forms"]:
+                try:
+                    action_sequence = world.logical_form_to_action_sequence(
+                        logical_form
+                    )
+                    index_fields: List[Field] = []
+                    for production_rule in action_sequence:
+                        index_fields.append(
+                            IndexField(action_map[production_rule], action_field)
+                        )
+                    action_sequence_fields.append(ListField(index_fields))
+                except:  # noqa
+                    logger.error(logical_form)
+                    raise
+
+            if not action_sequence_fields:
+                # This is not great, but we're only doing it when we're passed logical form
+                # supervision, so we're expecting labeled logical forms, but we can't actually
+                # produce the logical forms.  We should skip this instance.  Note that this affects
+                # _dev_ and _test_ instances, too, so your metrics could be over-estimates on the
+                # full test data.
+                return None
+            target_action_sequences_field = ListField(action_sequence_fields)
+        else:
+            return None
+
         fields = {
             "question": question_field,
             "world": world_field,
             "actions": action_field,
             "metadata": metadata_field,
+            "target_action_sequences": target_action_sequences_field,
         }
 
         return Instance(fields)
@@ -115,7 +157,6 @@ class TempliDatasetReader(DatasetReader):
 
         # helper for tokenization
         def tokenize_to_ids(sentence: str):
-            ffff = self._tokenizer.tokenize(sentence)
             return self._tokenizer.convert_tokens_to_ids(
                 self._tokenizer.tokenize(sentence)
             )
