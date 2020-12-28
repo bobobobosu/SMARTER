@@ -34,7 +34,6 @@ from torch.autograd import Variable
 from torch.nn import CrossEntropyLoss
 import torch.nn.functional as F
 
-from file_utils import cached_path
 
 logger = logging.getLogger(__name__)
 

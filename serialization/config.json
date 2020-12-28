@@ -1,5 +1,10 @@
 {
-    "dataset_reader": "templi.dataset_readers.templi_dataset_reader.TempliDatasetReader",
+    "dataset_reader": {
+        "type": "templi.dataset_readers.templi_dataset_reader.TempliDatasetReader",
+        "bert_model": "bert-base-uncased",
+        "do_lower_case": true,
+        "lazy": true
+    },
     "model": "templi.models.templi_semantic_parser.TempliSemanticParser",
     "train_data_path": "/mnt/AAI_Project/temli/data/sentences_logical_forms.json",
     "trainer": {

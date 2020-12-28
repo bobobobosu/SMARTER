@@ -19,11 +19,11 @@ from allennlp.nn import util
 from allennlp.training.metrics import Average
 
 from allennlp_semparse.common import ParsingError
-from allennlp_semparse.domain_languages import WikiTablesLanguage, START_SYMBOL
+from allennlp_semparse.domain_languages import START_SYMBOL
 from allennlp_semparse.domain_languages.domain_language import ExecutionError
 from allennlp_semparse.fields.production_rule_field import ProductionRuleArray
 from allennlp_semparse.state_machines.states import GrammarBasedState, GrammarStatelet, RnnStatelet
-
+from templi.templi_languages.templi_language import Templi_Language
 
 class TempliSemanticParser(Model):
     """

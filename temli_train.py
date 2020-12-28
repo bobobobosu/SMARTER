@@ -20,7 +20,12 @@ from allennlp.predictors import Predictor
 shutil.rmtree('serialization')
 
 p = Params({
-    'dataset_reader': 'templi.dataset_readers.templi_dataset_reader.TempliDatasetReader',
+    'dataset_reader':{
+        'type':'templi.dataset_readers.templi_dataset_reader.TempliDatasetReader',
+        'lazy': True,
+        'bert_model': 'bert-base-uncased',
+        'do_lower_case': True,
+    },
     'train_data_path': '/mnt/AAI_Project/temli/data/sentences_logical_forms.json',
     'model': 'templi.models.templi_semantic_parser.TempliSemanticParser',
     'data_loader': 'templi.dataset_readers.templi_data_loader.TempliDataLoader',

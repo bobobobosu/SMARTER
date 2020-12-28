@@ -53,7 +53,7 @@ class Templi_Language(DomainLanguage):
         self.add_predicate("d", self.during)
         self.add_predicate("D", self.contains)
         self.add_predicate("s", self.starts)
-        self.add_predicate("e", self.started_by)
+        self.add_predicate("S", self.started_by)
         self.add_predicate("o", self.overlaps)
         self.add_predicate("O", self.overlapped_by)
 

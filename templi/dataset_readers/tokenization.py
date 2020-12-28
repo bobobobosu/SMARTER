@@ -23,7 +23,8 @@ import unicodedata
 import os
 import logging
 
-from file_utils import cached_path
+from templi.dataset_readers.file_utils import cached_path
+
 
 logger = logging.getLogger(__name__)
 
