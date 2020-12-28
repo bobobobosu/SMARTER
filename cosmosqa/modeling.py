@@ -1125,38 +1125,36 @@ class BertForQuestionAnswering(PreTrainedBertModel):
 
 
 # get attention mask for doc, question and options separately
-def seperate_seq_attention(attention_mask, doc_len, ques_len, option_len):
+def seperate_seq_attention(attention_mask, doc_len, ques_len):
     doc_seq_output = attention_mask.new(attention_mask.size()).zero_()
     ques_seq_output = attention_mask.new(attention_mask.size()).zero_()
-    option_seq_output = attention_mask.new(attention_mask.size()).zero_()
+    cls_seq_output = attention_mask.new(attention_mask.size()).zero_()
     doc_ques_seq_output = attention_mask.new(attention_mask.size()).zero_()
-    doc_option_seq_output = attention_mask.new(attention_mask.size()).zero_()
-    ques_option_seq_output = attention_mask.new(attention_mask.size()).zero_()
+    doc_cls_seq_output = attention_mask.new(attention_mask.size()).zero_()
+    ques_cls_seq_output = attention_mask.new(attention_mask.size()).zero_()
 
     for i in range(doc_len.size(0)):
         doc_seq_output[i, :doc_len[i]] = attention_mask[i, 1:1+doc_len[i]]
         ques_seq_output[i, :ques_len[i]] = attention_mask[i, doc_len[i]+2:doc_len[i]+ques_len[i]+2]
-        option_seq_output[i, :option_len[i]] = \
-            attention_mask[i, doc_len[i]+ques_len[i]+2:doc_len[i]+ques_len[i]+option_len[i]+2]
+        cls_seq_output[i, :1] = attention_mask[i, :1]
 
         doc_ques_seq_output[i, :doc_len[i]] = attention_mask[i, 1:1+doc_len[i]]
         doc_ques_seq_output[i, doc_len[i]:doc_len[i]+ques_len[i]] = \
             attention_mask[i, doc_len[i] + 2:doc_len[i] + ques_len[i] + 2]
 
-        doc_option_seq_output[i, :doc_len[i]] = attention_mask[i, 1:1+doc_len[i]]
-        doc_option_seq_output[i, doc_len[i]:doc_len[i]+option_len[i]] = \
-            attention_mask[i, doc_len[i] + ques_len[i] + 2:doc_len[i] + ques_len[i] + option_len[i] + 2]
+        doc_cls_seq_output[i, :doc_len[i]] = attention_mask[i, 1:1+doc_len[i]]
+        doc_cls_seq_output[i, doc_len[i]:doc_len[i]+1] = \
+            attention_mask[i, doc_len[i] + ques_len[i] + 2:doc_len[i] + ques_len[i] + 1 + 2]
 
-        ques_option_seq_output[i, :ques_len[i]] = attention_mask[i, doc_len[i] + 2:doc_len[i] + ques_len[i] + 2]
-        ques_option_seq_output[i, ques_len[i]:ques_len[i]+option_len[i]] = \
-            attention_mask[i, doc_len[i] + ques_len[i] + 2:doc_len[i] + ques_len[i] + option_len[i] + 2]
+        ques_cls_seq_output[i, :ques_len[i]] = attention_mask[i, doc_len[i] + 2:doc_len[i] + ques_len[i] + 2]
+        ques_cls_seq_output[i, ques_len[i]:ques_len[i]+1] = \
+            attention_mask[i, doc_len[i] + ques_len[i] + 2:doc_len[i] + ques_len[i] + 1 + 2]
+    
+    return doc_seq_output, ques_seq_output, cls_seq_output, doc_ques_seq_output, \
+        doc_cls_seq_output, ques_cls_seq_output
 
-    return doc_seq_output, ques_seq_output, option_seq_output, doc_ques_seq_output, \
-        doc_option_seq_output, ques_option_seq_output
-
-
-# get sequence output for doc, question and options separately
-def seperate_seq(sequence_output, doc_len, ques_len, option_len):
+# get sequence output for doc and question separately
+def seperate_seq(sequence_output, doc_len, ques_len):
     doc_seq_output = sequence_output.new(sequence_output.size()).zero_()
     ques_seq_output = sequence_output.new(sequence_output.size()).zero_()
     option_seq_output = sequence_output.new(sequence_output.size()).zero_()
@@ -1167,20 +1165,20 @@ def seperate_seq(sequence_output, doc_len, ques_len, option_len):
     for i in range(doc_len.size(0)):
         doc_seq_output[i, :doc_len[i]] = sequence_output[i, 1:1+doc_len[i]]
         ques_seq_output[i, :ques_len[i]] = sequence_output[i, doc_len[i] + 2:doc_len[i] + ques_len[i] + 2]
-        option_seq_output[i, :option_len[i]] = \
-            sequence_output[i, doc_len[i] + ques_len[i] + 2:doc_len[i] + ques_len[i] + option_len[i] + 2]
+        option_seq_output[i, :1] = \
+            sequence_output[i, doc_len[i] + ques_len[i] + 2:doc_len[i] + ques_len[i] + 1 + 2]
 
         doc_ques_seq_output[i, :doc_len[i]] = sequence_output[i, 1:1+doc_len[i]]
         doc_ques_seq_output[i, doc_len[i]:doc_len[i]+ques_len[i]] = \
             sequence_output[i, doc_len[i] + 2:doc_len[i] + ques_len[i] + 2]
 
         doc_option_seq_output[i, :doc_len[i]] = sequence_output[i, 1:1+doc_len[i]]
-        doc_option_seq_output[i, doc_len[i]:doc_len[i]+option_len[i]] = \
-            sequence_output[i, doc_len[i] + ques_len[i] + 2:doc_len[i] + ques_len[i] + option_len[i] + 2]
+        doc_option_seq_output[i, doc_len[i]:doc_len[i]+1] = \
+            sequence_output[i, doc_len[i] + ques_len[i] + 2:doc_len[i] + ques_len[i] + 1 + 2]
 
         ques_option_seq_output[i, :ques_len[i]] = sequence_output[i, doc_len[i] + 2:doc_len[i] + ques_len[i] + 2]
-        ques_option_seq_output[i, ques_len[i]:ques_len[i]+option_len[i]] = \
-            sequence_output[i, doc_len[i] + ques_len[i] + 2:doc_len[i] + ques_len[i] + option_len[i] + 2]
+        ques_option_seq_output[i, ques_len[i]:ques_len[i]+1] = \
+            sequence_output[i, doc_len[i] + ques_len[i] + 2:doc_len[i] + ques_len[i] + 1 + 2]
 
     return doc_seq_output, ques_seq_output, option_seq_output, doc_ques_seq_output, \
         doc_option_seq_output, ques_option_seq_output
@@ -1240,9 +1238,6 @@ class BertMultiwayMatch(PreTrainedBertModel):
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.linear_trans = nn.Linear(config.hidden_size, config.hidden_size)
         self.linear_fuse_p = nn.Linear(config.hidden_size*2, config.hidden_size)
-        self.linear_fuse_q = nn.Linear(config.hidden_size*2, config.hidden_size)
-        self.linear_fuse_a = nn.Linear(config.hidden_size * 2, config.hidden_size)
-        self.classifier = nn.Linear(config.hidden_size*3, 1)
         self.apply(self.init_bert_weights)
 
     def matching(self, passage_encoded, question_encoded, passage_attention_mask, question_attention_mask):
@@ -1260,55 +1255,33 @@ class BertMultiwayMatch(PreTrainedBertModel):
         p2q_scores_ = p2q_scores + merged_attention_mask
         # Normalize the attention scores to probabilities.
         p2q_w = nn.Softmax(dim=-1)(p2q_scores_)
-        p2q_w_ = nn.Softmax(dim=1)(p2q_scores_)
-
+        
         # question attentive passage representation
         mp = torch.matmul(p2q_w, question_encoded)
-        # passage attentive question representation
-        mq = torch.matmul(p2q_w_.transpose(2, 1), passage_encoded)
-
-        return mp, mq
+        
+        return mp
 
     # sub and multiply
-    def fusing_mlp(self, passage_encoded, mp_q, mp_a, mp_qa, question_encoded,
-                   mq_p, mq_a, mq_pa, answers_encoded, ma_p, ma_q, ma_pq):
+    def fusing_mlp(self, passage_encoded, mp_q, mp_a, mp_qa):
         new_mp_q = torch.cat([mp_q - passage_encoded, mp_q * passage_encoded], 2)
         new_mp_a = torch.cat([mp_a - passage_encoded, mp_a * passage_encoded], 2)
         new_mp_qa = torch.cat([mp_qa - passage_encoded, mp_qa * passage_encoded], 2)
-        new_mq_p = torch.cat([mq_p - question_encoded, mq_p * question_encoded], 2)
-        new_mq_a = torch.cat([mq_a - question_encoded, mq_a * question_encoded], 2)
-        new_mq_pa = torch.cat([mq_pa - question_encoded, mq_pa * question_encoded], 2)
-        new_ma_p = torch.cat([ma_p - answers_encoded, ma_p * answers_encoded], 2)
-        new_ma_q = torch.cat([ma_q - answers_encoded, ma_q * answers_encoded], 2)
-        new_ma_pq = torch.cat([ma_pq - answers_encoded, ma_pq * answers_encoded], 2)
 
         new_mp = torch.cat([new_mp_q, new_mp_a, new_mp_qa], 1)
-        new_mq = torch.cat([new_mq_p, new_mq_a, new_mq_pa], 1)
-        new_ma = torch.cat([new_ma_p, new_ma_q, new_ma_pq], 1)
 
         # use separate linear functions
         new_mp_ = F.relu(self.linear_fuse_p(new_mp))
-        new_mq_ = F.relu(self.linear_fuse_q(new_mq))
-        new_ma_ = F.relu(self.linear_fuse_a(new_ma))
 
-        new_p_max, new_p_idx = torch.max(new_mp_, 1)
-        new_q_max, new_q_idx = torch.max(new_mq_, 1)
-        new_a_max, new_a_idx = torch.max(new_ma_, 1)
+        # ROW-wise max pooling (different from the original column-wise design)
+        new_p_max, new_p_idx = torch.max(new_mp_, 2)
 
-        new_p_max_ = new_p_max.view(-1, self.num_choices, new_p_max.size(1))
-        new_q_max_ = new_q_max.view(-1, self.num_choices, new_q_max.size(1))
-        new_a_max_ = new_a_max.view(-1, self.num_choices, new_a_max.size(1))
-
-        c = torch.cat([new_p_max_, new_q_max_, new_a_max_], 2)
-
-        return c
+        return new_p_max
 
     def forward(self, input_ids, token_type_ids=None, attention_mask=None, doc_len=None,
-                ques_len=None, option_len=None, labels=None):
+                ques_len=None):
         flat_input_ids = input_ids.view(-1, input_ids.size(-1))
         doc_len = doc_len.view(-1, doc_len.size(0) * doc_len.size(1)).squeeze()
         ques_len = ques_len.view(-1, ques_len.size(0) * ques_len.size(1)).squeeze()
-        option_len = option_len.view(-1, option_len.size(0) * option_len.size(1)).squeeze()
         flat_token_type_ids = token_type_ids.view(-1, token_type_ids.size(-1))
         flat_attention_mask = attention_mask.view(-1, attention_mask.size(-1))
 
@@ -1318,37 +1291,30 @@ class BertMultiwayMatch(PreTrainedBertModel):
 
         passage_encoded, question_encoded, answers_encoded, passage_question_encoded, \
             passage_answer_encoded, question_answer_encoded = seperate_seq(sequence_output, doc_len,
-                                                                           ques_len, option_len)
+                                                                           ques_len)
         passage_attention_mask, question_attention_mask, answers_attention_mask, \
             passage_question_attention_mask, passage_answer_attention_mask, \
             question_answer_attention_mask = seperate_seq_attention(flat_attention_mask, doc_len,
-                                                                    ques_len, option_len)
+                                                                    ques_len)
 
         # matching layer
-        mp_q, mq_p = self.matching(passage_encoded, question_encoded, passage_attention_mask,
+        mp_q = self.matching(passage_encoded, question_encoded, passage_attention_mask,
                                    question_attention_mask)
-        mp_a, ma_p = self.matching(passage_encoded, answers_encoded, passage_attention_mask,
+        mp_a = self.matching(passage_encoded, answers_encoded, passage_attention_mask,
                                    answers_attention_mask)
-        mp_qa, mqa_p = self.matching(passage_encoded, question_answer_encoded, passage_attention_mask,
+        mp_qa = self.matching(passage_encoded, question_answer_encoded, passage_attention_mask,
                                      question_answer_attention_mask)
-        mq_a, ma_q = self.matching(question_encoded, answers_encoded, question_attention_mask,
-                                   answers_attention_mask)
-        mq_pa, mpa_q = self.matching(question_encoded, passage_answer_encoded, question_attention_mask,
-                                     passage_answer_attention_mask)
-        ma_pq, mpq_a = self.matching(answers_encoded, passage_question_encoded, answers_attention_mask,
-                                     passage_question_attention_mask)
 
         # MLP fuse
-        c = self.fusing_mlp(passage_encoded, mp_q, mp_a, mp_qa, question_encoded, mq_p,
-                            mq_a, mq_pa, answers_encoded, ma_p, ma_q, ma_pq)
-        c_ = c.view(-1, c.size(2))
-        logits = self.classifier(c_)
-        reshaped_logits = logits.view(-1, self.num_choices)
+        passage_weights = self.fusing_mlp(passage_encoded, mp_q, mp_a, mp_qa)
+                
+        # Returns the weighted token embeddings
+        # passage_encoded  # batch_size x seq_len x embedding_size
+        # passage_weights  # batch_size x seq_len
+        weighted_passage = passage_encoded * passage_weights.unsqueeze(-1)
+        
+        # TODO: write loss function
+        loss = 0.0
 
-        if labels is not None:
-            loss_fct = CrossEntropyLoss()
-            loss = loss_fct(reshaped_logits, labels)
-            return loss, reshaped_logits
-        else:
-            return reshaped_logits
+        return weighted_passage, loss  # loss is given only if it's training mode
 
