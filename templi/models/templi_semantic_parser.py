@@ -28,7 +28,8 @@ from allennlp_semparse.state_machines.states import (
     RnnStatelet,
 )
 from templi.templi_languages.templi_language import TempliLanguage
-from templi.models.bert_multiway_match import BertMultiwayMatch
+from templi.models.temli_question_embedder import TemliQuestionEmbedder
+from templi.models.temli_word_embedder import TemliWordEmbedder
 
 
 class TempliSemanticParser(Model):
@@ -45,8 +46,8 @@ class TempliSemanticParser(Model):
     Parameters
     ----------
     vocab : ``Vocabulary``
-    question_embedder : ``BertMultiwayMatch``
-        Embedder for questions.
+    bert_model: ``str``
+        The name of bert model to use
     action_embedding_dim : ``int``
         Dimension to use for action embeddings.
     encoder : ``Seq2SeqEncoder``
@@ -77,6 +78,7 @@ class TempliSemanticParser(Model):
 
     def __init__(
         self,
+        cuda_device: int,
         bert_model: str,
         vocab: Vocabulary,
         action_embedding_dim: int,
@@ -89,8 +91,13 @@ class TempliSemanticParser(Model):
         rule_namespace: str = "rule_labels",
     ) -> None:
         super().__init__(vocab)
-        self._question_embedder = BertMultiwayMatch.from_pretrained(bert_model)
+        self._question_embedder = TemliQuestionEmbedder(
+            bert_model, device=cuda_device
+        )  # TODO THIS IS NASTY FIX THIS
         self._encoder = encoder
+        self._entity_encoder = TemliWordEmbedder(
+            bert_model
+        )  # We also use bert for entity embeddings
         self._max_decoding_steps = max_decoding_steps
         self._add_action_bias = add_action_bias
         self._use_neighbor_similarity_for_linking = use_neighbor_similarity_for_linking
@@ -125,10 +132,9 @@ class TempliSemanticParser(Model):
         torch.nn.init.normal_(self._first_action_embedding)
         torch.nn.init.normal_(self._first_attended_question)
 
-
         # TODO entity type can be date, day, time...etc but we have only 1 now (Interval)
         self._num_entity_types = (
-            1  # TODO(mattg): get this in a more principled way somehow?
+            1  # TODO Currently there is only one type called "TimeInterval"
         )
         self._embedding_dim = self._question_embedder.get_output_dim()
         self._entity_type_encoder_embedding = Embedding(
@@ -155,9 +161,11 @@ class TempliSemanticParser(Model):
 
     def _get_initial_rnn_and_grammar_state(
         self,
-        question: Dict[str, torch.LongTensor],
+        question: torch.LongTensor,
+        table: Dict[str, torch.LongTensor],
         world: List[TempliLanguage],
         actions: List[List[ProductionRuleArray]],
+        metadata: List[Dict[str, Any]],
         outputs: Dict[str, Any],
     ) -> Tuple[List[RnnStatelet], List[GrammarStatelet]]:
         """
@@ -170,7 +178,7 @@ class TempliSemanticParser(Model):
         """
         table_text = table["text"]
         # (batch_size, question_length, embedding_dim)
-        embedded_question = self._question_embedder(question)
+        embedded_question = self._question_embedder(question, metadata)
         question_mask = util.get_text_field_mask(question)
         # (batch_size, num_entities, num_entity_tokens, embedding_dim)
         embedded_table = self._question_embedder(table_text, num_wrapping_dims=1)
@@ -179,8 +187,8 @@ class TempliSemanticParser(Model):
         batch_size, num_entities, num_entity_tokens, _ = embedded_table.size()
         num_question_tokens = embedded_question.size(1)
 
-        # (batch_size, num_entities)
-        encoded_entities = None
+        # (batch_size, num_entities, embedding_dim)
+        encoded_table = self._entity_encoder(embedded_table, table_mask)
 
         # entity_types: tensor with shape (batch_size, num_entities), where each entry is the
         # entity's type id.

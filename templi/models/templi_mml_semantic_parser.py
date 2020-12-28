@@ -23,7 +23,7 @@ from allennlp_semparse.state_machines.transition_functions import (
     LinkingTransitionFunction,
 )
 from templi.templi_languages.templi_language import TempliLanguage
-from templi.models.bert_multiway_match import BertMultiwayMatch
+from templi.models.temli_multiway_match import BertMultiwayMatch
 
 
 @Model.register("wikitables_mml_parser")
@@ -90,6 +90,7 @@ class TempliMmlSemanticParser(TempliSemanticParser):
 
     def __init__(
         self,
+        cuda_device: int,
         bert_model: str,
         vocab: Vocabulary,
         action_embedding_dim: int,
@@ -108,6 +109,7 @@ class TempliMmlSemanticParser(TempliSemanticParser):
     ) -> None:
         use_similarity = use_neighbor_similarity_for_linking
         super().__init__(
+            cuda_device=cuda_device,
             bert_model=bert_model,
             vocab=vocab,
             action_embedding_dim=action_embedding_dim,
@@ -133,7 +135,8 @@ class TempliMmlSemanticParser(TempliSemanticParser):
     @overrides
     def forward(
         self,  # type: ignore
-        question: Dict[str, torch.LongTensor],
+        question: torch.LongTensor,
+        table: Dict[str, torch.LongTensor],
         world: List[TempliLanguage],
         actions: List[List[ProductionRuleArray]],
         target_action_sequences: torch.LongTensor = None,
@@ -175,7 +178,7 @@ class TempliMmlSemanticParser(TempliSemanticParser):
         """
         outputs: Dict[str, Any] = {}
         rnn_state, grammar_state = self._get_initial_rnn_and_grammar_state(
-            question, world, actions, outputs
+            question, table, world, actions, metadata, outputs
         )
         batch_size = len(rnn_state)
         initial_score = rnn_state[0].hidden_state.new_zeros(batch_size)

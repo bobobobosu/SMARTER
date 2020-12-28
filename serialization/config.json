@@ -12,6 +12,7 @@
             "type": "dot_product"
         },
         "bert_model": "bert-base-uncased",
+        "cuda_device": 0,
         "decoder_beam_search": {
             "beam_size": 3
         },

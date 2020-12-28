@@ -1279,15 +1279,19 @@ class BertMultiwayMatch(PreTrainedBertModel):
 
     def forward(self, input_ids, token_type_ids=None, attention_mask=None, doc_len=None,
                 ques_len=None):
-        flat_input_ids = input_ids.view(-1, input_ids.size(-1))
-        doc_len = doc_len.view(-1, doc_len.size(0) * doc_len.size(1)).squeeze()
-        ques_len = ques_len.view(-1, ques_len.size(0) * ques_len.size(1)).squeeze()
-        flat_token_type_ids = token_type_ids.view(-1, token_type_ids.size(-1))
-        flat_attention_mask = attention_mask.view(-1, attention_mask.size(-1))
+        # We have no options so no need to flatten the tensor
+        flat_input_ids = input_ids
+        doc_len = doc_len
+        ques_len = ques_len
+        flat_token_type_ids = token_type_ids
+        flat_attention_mask = attention_mask
 
         sequence_output, pooled_output = self.bert.forward(flat_input_ids, flat_token_type_ids,
                                                            flat_attention_mask,
                                                            output_all_encoded_layers=False)
+
+        passage_encoded, question_encoded, passage_question_encoded = seperate_seq(sequence_output, doc_len, ques_len)
+        passage_attention_mask, question_attention_mask, passage_question_encoded = seperate_seq_attention(sequence_output, doc_len, ques_len)
 
         passage_encoded, question_encoded, answers_encoded, passage_question_encoded, \
             passage_answer_encoded, question_answer_encoded = seperate_seq(sequence_output, doc_len,
@@ -1317,7 +1321,3 @@ class BertMultiwayMatch(PreTrainedBertModel):
         loss = 0.0
 
         return weighted_passage, loss  # loss is given only if it's training mode
-
-    def get_output_dim(self) -> int:
-        return self.config.hidden_size
-

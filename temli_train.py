@@ -46,6 +46,7 @@ p = Params(
             "decoder_beam_search": {"beam_size": 3},
             "max_decoding_steps": 200,
             "attention": {"type": "dot_product"},
+            "cuda_device": 0,
         },
         "data_loader": {
             "batch_size": 2

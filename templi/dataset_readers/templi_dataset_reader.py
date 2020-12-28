@@ -1,29 +1,34 @@
-import logging
-from typing import Dict, List, Any, Iterable
-import os
-import gzip
-import tarfile
-import json
 import copy
-from overrides import overrides
-
+import gzip
+import json
+import logging
+import os
+import tarfile
+from typing import Any, Dict, Iterable, List
+import numpy as np
 from allennlp.data import DatasetReader
-from allennlp.data.fields import Field, TextField, MetadataField, ListField, IndexField
+from allennlp.data.fields import (
+    Field,
+    IndexField,
+    ListField,
+    MetadataField,
+    TextField,
+    ArrayField,
+)
 from allennlp.data.instance import Instance
-from allennlp.data.token_indexers import SingleIdTokenIndexer
+from allennlp.data.token_indexers.single_id_token_indexer import SingleIdTokenIndexer
 from allennlp.data.token_indexers.token_indexer import TokenIndexer
-from allennlp.data.tokenizers import Tokenizer, SpacyTokenizer
-from allennlp.data.token_indexers import SingleIdTokenIndexer
-from allennlp.data.token_indexers.token_indexer import TokenIndexer
-from allennlp.data.tokenizers import Tokenizer, SpacyTokenizer
-from templi.templi_languages.templi_language import TempliLanguage, TempliTimeContext
-
+from allennlp.data.tokenizers import SpacyTokenizer, Tokenizer
 from allennlp_semparse.common import ParsingError
 from allennlp_semparse.fields import KnowledgeGraphField, ProductionRuleField
-
-from templi.dataset_readers.tokenization import BertTokenizer
+from overrides import overrides
+from templi.preprocessors.temli_tokenizer import TemliTokenizer
+from templi.templi_languages.templi_language import TempliLanguage, TempliTimeContext
 
 logger = logging.getLogger(__name__)
+max_seq_length = (
+    128  # TODO this value default from cosmosqa, change this to a better way
+)
 
 
 @DatasetReader.register("templi")
@@ -31,9 +36,13 @@ class TempliDatasetReader(DatasetReader):
     def __init__(self, bert_model, do_lower_case, lazy=False) -> None:
         super().__init__(lazy=lazy)
         self.sentences_logical_forms = None  # type: Dict[str:Dict[str:Any]]
-        self._tokenizer = BertTokenizer.from_pretrained(
-            bert_model, do_lower_case=do_lower_case
-        )
+        self._tokenizer = TemliTokenizer(bert_model, do_lower_case=do_lower_case)
+        # we force SingleIdTokenIndexer to use namespace=None, feature_name="text_id" so
+        # the TextField would return Tensor that represents id
+        self._question_token_indexers = {
+            "tokens": SingleIdTokenIndexer(namespace=None, feature_name="text_id")
+        }
+        self._table_token_indexers = self._question_token_indexers
         pass
 
     """
@@ -80,17 +89,55 @@ class TempliDatasetReader(DatasetReader):
     """
 
     def text_to_instance(self, one_data: Dict[str, Any]) -> Instance:
-
-        # Metadata Field containes the original data (unmodified)
-        metadata_field = MetadataField(one_data)
-
         # Question Field contains the problem specification (actually just tokenized one_data)
-        question_field = MetadataField(self.tokenize_one_data(one_data))
+        # This is exactly the input that is going to feed into BertMultiwayMatch's forward()
+        # except `doc_len` and `ques_len` (stored in the metadata_field because they aren't converted to tensors)
+        # This part is adapted from run_multiway_att.py
+        sentence_tokens = self._tokenizer.tokenize_to_str(one_data["sentence"].lower())
+        me_event_tokens = self._tokenizer.tokenize_to_str(
+            self.spaceless_rng_to_str(
+                one_data["sentence"], one_data["main_var"]
+            ).lower()
+        )
+        ques_len = len(me_event_tokens)
+        # Modifies `sentence_tokens` and `me_event_tokens` in place so that the total length is less than the
+        # specified length.  Account for [CLS], [SEP], [SEP] with "- 3"
+        self._truncate_seq_pair(sentence_tokens, me_event_tokens, max_seq_length - 3)
+        doc_len = len(sentence_tokens)
+        tokens = ["[CLS]"] + sentence_tokens + ["[SEP]"] + me_event_tokens + ["[SEP]"]
+        segment_ids = [0] * (len(sentence_tokens) + 2) + [1] * (
+            len(me_event_tokens) + 1
+        )
+        input_ids = self._tokenizer.convert_tokens_to_ids(tokens)
+        input_mask = [1] * len(input_ids)
+        # Zero-pad up to the sequence length.
+        padding = [0] * (max_seq_length - len(input_ids))
+        input_ids += padding
+        input_mask += padding
+        segment_ids += padding
+        question_field = ArrayField(
+            np.array([input_ids, segment_ids, input_mask]), dtype=np.long
+        )
 
         # Word Field contains the language used by this data
-        context = TempliTimeContext(temp_vars=one_data["temp_vars"])
+        context = TempliTimeContext(
+            temp_vars={
+                var: self.spaceless_rng_to_str(one_data["sentence"], var)
+                for var in one_data["temp_vars"]
+            }
+        )
         world = TempliLanguage(context)
         world_field = MetadataField(world)
+
+        # Table Field contains the knowledge graph given the context
+        table_field = KnowledgeGraphField(
+            context.get_table_knowledge_graph(),
+            self._tokenizer.tokenize(
+                one_data["sentence"].lower()
+            ),  # TODO put entire question including me_event or just sentence?
+            self._table_token_indexers,
+            tokenizer=self._tokenizer,
+        )
 
         # Production Rule Field contains the production rules possible from this world
         production_rule_fields: List[Field] = []
@@ -138,8 +185,15 @@ class TempliDatasetReader(DatasetReader):
         else:
             return None
 
+        # Metadata Field containes the original data (unmodified) plus information required
+        # to run BertMultiwayAttention
+        metadata_field = MetadataField(
+            {**one_data, **{"doc_len": doc_len, "ques_len": ques_len}}
+        )
+
         fields = {
             "question": question_field,
+            "table": table_field,
             "world": world_field,
             "actions": action_field,
             "metadata": metadata_field,
@@ -149,38 +203,25 @@ class TempliDatasetReader(DatasetReader):
         return Instance(fields)
 
     """
-    This function tokenizes the data if needed
-    """
-
-    def tokenize_one_data(self, one_data):
-        one_data = copy.deepcopy(one_data)
-
-        # helper for tokenization
-        def tokenize_to_ids(sentence: str):
-            return self._tokenizer.convert_tokens_to_ids(
-                self._tokenizer.tokenize(sentence)
-            )
-
-        # tokenize main_var
-        one_data["main_var"] = tokenize_to_ids(
-            self.spaceless_rng_to_str(one_data["sentence"], one_data["main_var"])
-        )
-
-        # tokenize temp_vars
-        one_data["temp_vars"] = [
-            tokenize_to_ids(self.spaceless_rng_to_str(one_data["sentence"], i))
-            for i in one_data["temp_vars"]
-        ]
-
-        # tokenize sentence
-        one_data["sentence"] = tokenize_to_ids(one_data["sentence"])
-
-        return one_data
-
-    """
     This function extracts the substring from a sentence using a range string "xx_yy:
     """
 
     def spaceless_rng_to_str(self, sentence: str, spacelspaceless_rng: str):
         range_tuple = tuple(map(lambda x: int(x), spacelspaceless_rng.split("_")))
         return sentence.replace(" ", "")[range_tuple[0] : range_tuple[1]]
+
+    def _truncate_seq_pair(self, tokens_a, tokens_b, max_length):
+        """Truncates a sequence pair in place to the maximum length."""
+
+        # This is a simple heuristic which will always truncate the longer sequence
+        # one token at a time. This makes more sense than truncating an equal percent
+        # of tokens from each, since if one sequence is very short then each token
+        # that's truncated likely contains more information than a longer sequence.
+        while True:
+            total_length = len(tokens_a) + len(tokens_b)
+            if total_length <= max_length:
+                break
+            if len(tokens_a) > len(tokens_b):
+                tokens_a.pop()
+            else:
+                tokens_b.pop()
