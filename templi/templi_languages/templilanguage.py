@@ -17,7 +17,7 @@ commonly used time expression hierarchy e.g. 2020, january, weekdays, centuries.
 """
 
 
-class Templi_Language(DomainLanguage):
+class TempliLanguage(DomainLanguage):
     def __init__(self, time_context: TempliTimeContext) -> None:
         super().__init__(start_types={TimeInterval})
 
