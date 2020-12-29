@@ -38,7 +38,7 @@ p = Params(
             "action_embedding_dim": 50,
             "encoder": {
                 "type": "lstm",
-                "input_size": 50,
+                "input_size": 1536,
                 "hidden_size": 10,
                 "num_layers": 1,
             },
@@ -47,10 +47,9 @@ p = Params(
             "max_decoding_steps": 200,
             "attention": {"type": "dot_product"},
             "cuda_device": 0,
+            "num_linking_features": 0, # TODO implement linking features
         },
-        "data_loader": {
-            "batch_size": 2
-        },
+        "data_loader": {"batch_size": 2},
         "trainer": {
             "num_epochs": 10000,
             "patience": 10,

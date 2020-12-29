@@ -191,7 +191,7 @@ class TempliMmlSemanticParser(TempliSemanticParser):
             rnn_state=rnn_state,
             grammar_state=grammar_state,
             possible_actions=actions,
-            extras=target_values,
+            extras=metadata,
             debug_info=None,
         )
 

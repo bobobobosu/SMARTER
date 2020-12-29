@@ -19,7 +19,7 @@
         "encoder": {
             "type": "lstm",
             "hidden_size": 10,
-            "input_size": 50,
+            "input_size": 1536,
             "num_layers": 1
         },
         "entity_encoder": {
@@ -27,7 +27,8 @@
             "averaged": true,
             "embedding_dim": 768
         },
-        "max_decoding_steps": 200
+        "max_decoding_steps": 200,
+        "num_linking_features": 0
     },
     "train_data_path": "/mnt/AAI_Project/temli/data/sentences_logical_forms_small.json",
     "trainer": {

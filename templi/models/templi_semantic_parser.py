@@ -89,7 +89,7 @@ class TempliSemanticParser(Model):
         add_action_bias: bool = True,
         use_neighbor_similarity_for_linking: bool = False,
         dropout: float = 0.0,
-        num_linking_features: int = 10,
+        num_linking_features: int = 0,
         rule_namespace: str = "rule_labels",
     ) -> None:
         super().__init__(vocab)
