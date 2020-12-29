@@ -157,3 +157,4 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 serialization/
+serialization_epoch34_loss_2206/

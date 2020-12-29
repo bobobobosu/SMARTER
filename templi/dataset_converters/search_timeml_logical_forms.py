@@ -71,7 +71,7 @@ def get_all_valid_logical_forms():
 
 
 def get_valid_logical_forms(sentences_rels: Dict[str, Dict[str, str]]):
-    with Pool(12) as p:
+    with Pool(4) as p:
         data = list(
             tqdm(
                 p.imap(logical_forms_of_sentence, sentences_rels.items()),
@@ -110,7 +110,7 @@ def logical_forms_of_sentence(sentence_rels: Tuple):
         target_vars = temp_vars.difference({main_var})
         context = TempliTimeContext(temp_vars=target_vars)
         world = TempliLanguage(context)
-        walker = ActionSpaceWalker(world, max_path_length=5)
+        walker = ActionSpaceWalker(world, max_path_length=8)
         all_logical_forms = walker.get_all_logical_forms(max_num_logical_forms=5000)
 
         # generate target relations

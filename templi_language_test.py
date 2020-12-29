@@ -36,20 +36,20 @@ import json
 
 
 # for generating logical forms
-# with open("/mnt/AAI_Project/temli/data/sentence_rels.json", "r") as f:
-#     sentence_rels = json.load(f)
-# sentences_logical_forms = get_valid_logical_forms(sentence_rels)
-# # # write to file
-# json.dump(sentences_logical_forms, open("sentences_logical_forms.json", "w"), indent=4)
-# fff = 9
+with open("/mnt/AAI_Project/temli/data/sentence_rels.json", "r") as f:
+    sentence_rels = json.load(f)
+sentences_logical_forms = get_valid_logical_forms(sentence_rels)
+# # write to file
+json.dump(sentences_logical_forms, open("sentences_logical_forms_len_8.json", "w"), indent=4)
+fff = 9
 
 # for generating training and validation dataset
 with open("/mnt/AAI_Project/temli/data/sentences_logical_forms.json", "r") as f:
     sentences_logical_forms = json.load(f)
 dev_keys = list(sentences_logical_forms.keys())[:len(sentences_logical_forms)//5]
 train_keys = list(sentences_logical_forms.keys())[len(sentences_logical_forms)//5:]
-json.dump({k:sentences_logical_forms[k] for k in list(dev_keys)}, open("data/sentences_logical_forms_dev.json", "w"), indent=4)
-json.dump({k:sentences_logical_forms[k] for k in list(train_keys)}, open("data/sentences_logical_forms_train.json", "w"), indent=4)
+json.dump({k:sentences_logical_forms[k] for k in list(dev_keys)}, open("data/sentences_logical_forms_len_8_dev.json", "w"), indent=4)
+json.dump({k:sentences_logical_forms[k] for k in list(train_keys)}, open("data/sentences_logical_forms_len_8_train.json", "w"), indent=4)
 
 # templilanguage = Templi_Language(TempliTimeContext({'clothes_dry','Thursday','evening'}))
 # # valid_actions = templilanguage.get_nonterminal_productions()

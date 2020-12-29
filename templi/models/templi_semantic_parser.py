@@ -803,7 +803,7 @@ class TempliSemanticParser(Model):
                                 self._has_logical_form(1.0)
                             else:
                                 self._has_logical_form(0.0)
-                            if metadata[i]["target_relations"]:
+                            if "target_relations" in metadata[i]:
                                 self._denotation_accuracy(
                                     1.0 if denotation_correct else 0.0
                                 )
