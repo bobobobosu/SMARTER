@@ -2,7 +2,7 @@ import json
 from tqdm import tqdm
 from templi.templi_languages.allen_algebra import converse, timeml_to_uci
 from typing import Dict, Tuple
-from templi.templi_languages.templilanguage import TempliLanguage, TempliTimeContext
+from templi.templi_languages.templi_language import TempliLanguage, TempliTimeContext
 
 from allennlp_semparse.common.action_space_walker import ActionSpaceWalker
 from functools import reduce

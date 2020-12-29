@@ -3,7 +3,7 @@ from allennlp.data.tokenizers import SpacyTokenizer
 import timeit
 from allennlp.common import Params
 from allennlp_semparse.common import Date, ExecutionError
-from templi.templi_languages.templilanguage import TempliLanguage, TempliTimeContext
+from templi.templi_languages.templi_language import TempliLanguage, TempliTimeContext
 from templi.dataset_converters.search_timeml_logical_forms import get_all_valid_logical_forms, get_valid_logical_forms
 from ortools.linear_solver import pywraplp
 from templi.templi_languages.allen_algebra import infer_relation
@@ -36,13 +36,20 @@ import json
 
 
 # for generating logical forms
-with open("/mnt/AAI_Project/temli/data/sentence_rels.json", "r") as f:
-    sentence_rels = json.load(f)
-sentences_logical_forms = get_valid_logical_forms(sentence_rels)
-# # write to file
-json.dump(sentences_logical_forms, open("sentences_logical_forms.json", "w"), indent=4)
-fff = 9
+# with open("/mnt/AAI_Project/temli/data/sentence_rels.json", "r") as f:
+#     sentence_rels = json.load(f)
+# sentences_logical_forms = get_valid_logical_forms(sentence_rels)
+# # # write to file
+# json.dump(sentences_logical_forms, open("sentences_logical_forms.json", "w"), indent=4)
+# fff = 9
 
+# for generating training and validation dataset
+with open("/mnt/AAI_Project/temli/data/sentences_logical_forms.json", "r") as f:
+    sentences_logical_forms = json.load(f)
+dev_keys = list(sentences_logical_forms.keys())[:len(sentences_logical_forms)//5]
+train_keys = list(sentences_logical_forms.keys())[len(sentences_logical_forms)//5:]
+json.dump({k:sentences_logical_forms[k] for k in list(dev_keys)}, open("data/sentences_logical_forms_dev.json", "w"), indent=4)
+json.dump({k:sentences_logical_forms[k] for k in list(train_keys)}, open("data/sentences_logical_forms_train.json", "w"), indent=4)
 
 # templilanguage = Templi_Language(TempliTimeContext({'clothes_dry','Thursday','evening'}))
 # # valid_actions = templilanguage.get_nonterminal_productions()

@@ -31,7 +31,8 @@ p = Params(
             "bert_model": "bert-base-uncased",
             "do_lower_case": True,
         },
-        "train_data_path": "/mnt/AAI_Project/temli/data/sentences_logical_forms_small.json",
+        "train_data_path": "/mnt/AAI_Project/temli/data/sentences_logical_forms_train.json",
+        "validation_data_path": "/mnt/AAI_Project/temli/data/sentences_logical_forms_dev.json",
         "model": {
             "type": "templi.models.templi_mml_semantic_parser.TempliMmlSemanticParser",
             "bert_model": "bert-base-uncased",
