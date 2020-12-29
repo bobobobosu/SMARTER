@@ -241,7 +241,7 @@ class TempliMmlSemanticParser(TempliSemanticParser):
                         self._action_sequence_accuracy(sequence_in_targets)
 
             self._compute_validation_outputs(
-                actions, best_final_states, world, target_values, metadata, outputs
+                actions, best_final_states, world, metadata, outputs
             )
             return outputs
 

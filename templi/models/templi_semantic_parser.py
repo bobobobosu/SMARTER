@@ -739,7 +739,6 @@ class TempliSemanticParser(Model):
         actions: List[List[ProductionRuleArray]],
         best_final_states: Mapping[int, Sequence[GrammarBasedState]],
         world: List[TempliLanguage],
-        target_list: List[List[str]],
         metadata: List[Dict[str, Any]],
         outputs: Dict[str, Any],
     ) -> None:
@@ -785,9 +784,9 @@ class TempliSemanticParser(Model):
                         has_logical_form = True
                     except ParsingError:
                         logical_form = "Error producing logical form"
-                    if target_list is not None:
+                    if metadata[i]["target_relations"] is not None:
                         denotation_correct = world[i].evaluate_logical_form(
-                            logical_form, target_list[i]
+                            logical_form, metadata[i]["target_relations"]
                         )
                     else:
                         denotation_correct = False
@@ -804,7 +803,7 @@ class TempliSemanticParser(Model):
                                 self._has_logical_form(1.0)
                             else:
                                 self._has_logical_form(0.0)
-                            if target_list:
+                            if metadata[i]["target_relations"]:
                                 self._denotation_accuracy(
                                     1.0 if denotation_correct else 0.0
                                 )
@@ -820,7 +819,7 @@ class TempliSemanticParser(Model):
                 self._denotation_accuracy(0.0)
 
         if metadata is not None:
-            outputs["question_tokens"] = [x["question_tokens"] for x in metadata]
+            outputs["metadata"] = metadata
 
     @overrides
     def make_output_human_readable(
