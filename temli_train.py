@@ -42,7 +42,7 @@ p = Params(
                 "hidden_size": 10,
                 "num_layers": 1,
             },
-            "entity_encoder": {"type": "boe", "embedding_dim": 25, "averaged": True},
+            "entity_encoder": {"type": "boe", "embedding_dim": 768, "averaged": True},
             "decoder_beam_search": {"beam_size": 3},
             "max_decoding_steps": 200,
             "attention": {"type": "dot_product"},

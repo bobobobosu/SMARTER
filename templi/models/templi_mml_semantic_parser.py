@@ -114,6 +114,7 @@ class TempliMmlSemanticParser(TempliSemanticParser):
             vocab=vocab,
             action_embedding_dim=action_embedding_dim,
             encoder=encoder,
+            entity_encoder=entity_encoder,
             max_decoding_steps=max_decoding_steps,
             add_action_bias=add_action_bias,
             use_neighbor_similarity_for_linking=use_similarity,

@@ -25,7 +25,7 @@
         "entity_encoder": {
             "type": "boe",
             "averaged": true,
-            "embedding_dim": 25
+            "embedding_dim": 768
         },
         "max_decoding_steps": 200
     },

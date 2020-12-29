@@ -29,7 +29,6 @@ from allennlp_semparse.state_machines.states import (
 )
 from templi.templi_languages.templi_language import TempliLanguage
 from templi.models.temli_question_embedder import TemliQuestionEmbedder
-from templi.models.temli_word_embedder import TemliWordEmbedder
 
 
 class TempliSemanticParser(Model):
@@ -52,6 +51,8 @@ class TempliSemanticParser(Model):
         Dimension to use for action embeddings.
     encoder : ``Seq2SeqEncoder``
         The encoder to use for the input question.
+    entity_encoder : ``Seq2VecEncoder``
+        The encoder to used for averaging the words of an entity.
     max_decoding_steps : ``int``
         When we're decoding with a beam search, what's the maximum number of steps we should take?
         This only applies at evaluation time, not during training.
@@ -83,6 +84,7 @@ class TempliSemanticParser(Model):
         vocab: Vocabulary,
         action_embedding_dim: int,
         encoder: Seq2SeqEncoder,
+        entity_encoder: Seq2VecEncoder,
         max_decoding_steps: int,
         add_action_bias: bool = True,
         use_neighbor_similarity_for_linking: bool = False,
@@ -94,10 +96,9 @@ class TempliSemanticParser(Model):
         self._question_embedder = TemliQuestionEmbedder(
             bert_model, device=cuda_device
         )  # TODO THIS IS NASTY FIX THIS
+        self._table_embedder = self._question_embedder
         self._encoder = encoder
-        self._entity_encoder = TemliWordEmbedder(
-            bert_model
-        )  # We also use bert for entity embeddings
+        self._entity_encoder = TimeDistributed(entity_encoder)
         self._max_decoding_steps = max_decoding_steps
         self._add_action_bias = add_action_bias
         self._use_neighbor_similarity_for_linking = use_neighbor_similarity_for_linking
@@ -132,10 +133,15 @@ class TempliSemanticParser(Model):
         torch.nn.init.normal_(self._first_action_embedding)
         torch.nn.init.normal_(self._first_attended_question)
 
-        # TODO entity type can be date, day, time...etc but we have only 1 now (Interval)
-        self._num_entity_types = (
-            1  # TODO Currently there is only one type called "TimeInterval"
+        check_dimensions_match(
+            entity_encoder.get_output_dim(),
+            self._question_embedder.get_output_dim(),
+            "entity word average embedding dim",
+            "question embedding dim",
         )
+
+        # TODO entity type can be date, day, time...etc but we have only 1 now (Interval)
+        self._num_entity_types = 1
         self._embedding_dim = self._question_embedder.get_output_dim()
         self._entity_type_encoder_embedding = Embedding(
             num_embeddings=self._num_entity_types, embedding_dim=self._embedding_dim
@@ -177,12 +183,38 @@ class TempliSemanticParser(Model):
         visualize in a demo.
         """
         table_text = table["text"]
+
         # (batch_size, question_length, embedding_dim)
         embedded_question = self._question_embedder(question, metadata)
-        question_mask = util.get_text_field_mask(question)
-        # (batch_size, num_entities, num_entity_tokens, embedding_dim)
-        embedded_table = self._question_embedder(table_text, num_wrapping_dims=1)
+        batch_size, question_length, embedding_dim = embedded_question.size()
+        # The input mask is at the third dimension, check templi_dataset_reader.py
+        question_mask = torch.transpose(question, 0, 1)[2]
+
+        # (batch_size*num_entities, num_entity_tokens, num_entity_tokens)
+        # here we process entities accross batch as a flattened list
         table_mask = util.get_text_field_mask(table_text, num_wrapping_dims=1)
+        # (batch_size*num_entities, num_entity_tokens, embedding_dim)
+        flat_embedded_table = self._table_embedder(
+            # Here we stack the input for multiway attention in the order specified in
+            # templi_dataset_reader.py
+            torch.stack(
+                [
+                    torch.flatten(
+                        util.get_token_ids_from_text_field_tensors(table_text),
+                        end_dim=1,
+                    ),
+                    torch.flatten(table_mask, end_dim=1),
+                    torch.flatten(table_mask, end_dim=1),
+                ],
+                dim=1,
+            ),
+            metadata=None,
+        )
+        # (batch_size, num_entities, num_entity_tokens, embedding_dim)
+        first_dim, *rest_dim = flat_embedded_table.size()
+        embedded_table = flat_embedded_table.view(
+            batch_size, first_dim // batch_size, *rest_dim
+        )
 
         batch_size, num_entities, num_entity_tokens, _ = embedded_table.size()
         num_question_tokens = embedded_question.size(1)

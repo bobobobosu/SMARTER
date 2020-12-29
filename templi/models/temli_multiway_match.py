@@ -1127,61 +1127,34 @@ class BertForQuestionAnswering(PreTrainedBertModel):
 def seperate_seq_attention(attention_mask, doc_len, ques_len):
     doc_seq_output = attention_mask.new(attention_mask.size()).zero_()
     ques_seq_output = attention_mask.new(attention_mask.size()).zero_()
-    cls_seq_output = attention_mask.new(attention_mask.size()).zero_()
     doc_ques_seq_output = attention_mask.new(attention_mask.size()).zero_()
-    doc_cls_seq_output = attention_mask.new(attention_mask.size()).zero_()
-    ques_cls_seq_output = attention_mask.new(attention_mask.size()).zero_()
 
     for i in range(doc_len.size(0)):
         doc_seq_output[i, :doc_len[i]] = attention_mask[i, 1:1+doc_len[i]]
         ques_seq_output[i, :ques_len[i]] = attention_mask[i, doc_len[i]+2:doc_len[i]+ques_len[i]+2]
-        cls_seq_output[i, :1] = attention_mask[i, :1]
 
         doc_ques_seq_output[i, :doc_len[i]] = attention_mask[i, 1:1+doc_len[i]]
         doc_ques_seq_output[i, doc_len[i]:doc_len[i]+ques_len[i]] = \
             attention_mask[i, doc_len[i] + 2:doc_len[i] + ques_len[i] + 2]
 
-        doc_cls_seq_output[i, :doc_len[i]] = attention_mask[i, 1:1+doc_len[i]]
-        doc_cls_seq_output[i, doc_len[i]:doc_len[i]+1] = \
-            attention_mask[i, doc_len[i] + ques_len[i] + 2:doc_len[i] + ques_len[i] + 1 + 2]
+    return doc_seq_output, ques_seq_output, doc_ques_seq_output
 
-        ques_cls_seq_output[i, :ques_len[i]] = attention_mask[i, doc_len[i] + 2:doc_len[i] + ques_len[i] + 2]
-        ques_cls_seq_output[i, ques_len[i]:ques_len[i]+1] = \
-            attention_mask[i, doc_len[i] + ques_len[i] + 2:doc_len[i] + ques_len[i] + 1 + 2]
-    
-    return doc_seq_output, ques_seq_output, cls_seq_output, doc_ques_seq_output, \
-        doc_cls_seq_output, ques_cls_seq_output
 
 # get sequence output for doc and question separately
 def seperate_seq(sequence_output, doc_len, ques_len):
     doc_seq_output = sequence_output.new(sequence_output.size()).zero_()
     ques_seq_output = sequence_output.new(sequence_output.size()).zero_()
-    option_seq_output = sequence_output.new(sequence_output.size()).zero_()
-    ques_option_seq_output = sequence_output.new(sequence_output.size()).zero_()
-    doc_option_seq_output = sequence_output.new(sequence_output.size()).zero_()
     doc_ques_seq_output = sequence_output.new(sequence_output.size()).zero_()
 
     for i in range(doc_len.size(0)):
         doc_seq_output[i, :doc_len[i]] = sequence_output[i, 1:1+doc_len[i]]
         ques_seq_output[i, :ques_len[i]] = sequence_output[i, doc_len[i] + 2:doc_len[i] + ques_len[i] + 2]
-        option_seq_output[i, :1] = \
-            sequence_output[i, doc_len[i] + ques_len[i] + 2:doc_len[i] + ques_len[i] + 1 + 2]
-
         doc_ques_seq_output[i, :doc_len[i]] = sequence_output[i, 1:1+doc_len[i]]
         doc_ques_seq_output[i, doc_len[i]:doc_len[i]+ques_len[i]] = \
             sequence_output[i, doc_len[i] + 2:doc_len[i] + ques_len[i] + 2]
 
-        doc_option_seq_output[i, :doc_len[i]] = sequence_output[i, 1:1+doc_len[i]]
-        doc_option_seq_output[i, doc_len[i]:doc_len[i]+1] = \
-            sequence_output[i, doc_len[i] + ques_len[i] + 2:doc_len[i] + ques_len[i] + 1 + 2]
 
-        ques_option_seq_output[i, :ques_len[i]] = sequence_output[i, doc_len[i] + 2:doc_len[i] + ques_len[i] + 2]
-        ques_option_seq_output[i, ques_len[i]:ques_len[i]+1] = \
-            sequence_output[i, doc_len[i] + ques_len[i] + 2:doc_len[i] + ques_len[i] + 1 + 2]
-
-    return doc_seq_output, ques_seq_output, option_seq_output, doc_ques_seq_output, \
-        doc_option_seq_output, ques_option_seq_output
-
+    return doc_seq_output, ques_seq_output, doc_ques_seq_output
 
 # BERT with multiway attention
 class BertMultiwayMatch(PreTrainedBertModel):
@@ -1238,6 +1211,7 @@ class BertMultiwayMatch(PreTrainedBertModel):
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.linear_trans = nn.Linear(config.hidden_size, config.hidden_size)
         self.linear_fuse_p = nn.Linear(config.hidden_size*2, config.hidden_size)
+        self.linear_fuse_q = nn.Linear(config.hidden_size*2, config.hidden_size)
         self.apply(self.init_bert_weights)
 
     def matching(self, passage_encoded, question_encoded, passage_attention_mask, question_attention_mask):
@@ -1255,27 +1229,38 @@ class BertMultiwayMatch(PreTrainedBertModel):
         p2q_scores_ = p2q_scores + merged_attention_mask
         # Normalize the attention scores to probabilities.
         p2q_w = nn.Softmax(dim=-1)(p2q_scores_)
-        
+        p2q_w_ = nn.Softmax(dim=1)(p2q_scores_)
+
         # question attentive passage representation
         mp = torch.matmul(p2q_w, question_encoded)
-        
-        return mp
+        # passage attentive question representation
+        mq = torch.matmul(p2q_w_.transpose(2, 1), passage_encoded)
+
+        return mp, mq
 
     # sub and multiply
-    def fusing_mlp(self, passage_encoded, mp_q, mp_a, mp_qa):
+    def fusing_mlp(self, passage_encoded, mp_q, question_encoded, mq_p):
         new_mp_q = torch.cat([mp_q - passage_encoded, mp_q * passage_encoded], 2)
-        new_mp_a = torch.cat([mp_a - passage_encoded, mp_a * passage_encoded], 2)
-        new_mp_qa = torch.cat([mp_qa - passage_encoded, mp_qa * passage_encoded], 2)
+        new_mq_p = torch.cat([mq_p - question_encoded, mq_p * question_encoded], 2)
 
-        new_mp = torch.cat([new_mp_q, new_mp_a, new_mp_qa], 1)
+        new_mp = torch.cat([new_mp_q], 1)
+        new_mq = torch.cat([new_mq_p], 1)
 
         # use separate linear functions
         new_mp_ = F.relu(self.linear_fuse_p(new_mp))
+        new_mq_ = F.relu(self.linear_fuse_q(new_mq))
 
-        # ROW-wise max pooling (different from the original column-wise design)
-        new_p_max, new_p_idx = torch.max(new_mp_, 2)
+        new_p_max, new_p_idx = torch.max(new_mp_, 1)
+        new_q_max, new_q_idx = torch.max(new_mq_, 1)
 
-        return new_p_max
+        new_p_max_ = new_p_max.view(-1, self.num_choices, new_p_max.size(1))
+        new_q_max_ = new_q_max.view(-1, self.num_choices, new_q_max.size(1))
+
+        c = torch.cat([new_p_max_, new_q_max_], 2)
+
+        return c
+
+
 
     def forward(self, input_ids, token_type_ids=None, attention_mask=None, doc_len=None,
                 ques_len=None):
@@ -1286,38 +1271,23 @@ class BertMultiwayMatch(PreTrainedBertModel):
         flat_token_type_ids = token_type_ids
         flat_attention_mask = attention_mask
 
+        
         sequence_output, pooled_output = self.bert.forward(flat_input_ids, flat_token_type_ids,
                                                            flat_attention_mask,
                                                            output_all_encoded_layers=False)
 
-        passage_encoded, question_encoded, passage_question_encoded = seperate_seq(sequence_output, doc_len, ques_len)
-        passage_attention_mask, question_attention_mask, passage_question_encoded = seperate_seq_attention(sequence_output, doc_len, ques_len)
+        # if ques_len=None, we are using bert as simple text embedder
+        if ques_len is None:
+            return sequence_output
 
-        passage_encoded, question_encoded, answers_encoded, passage_question_encoded, \
-            passage_answer_encoded, question_answer_encoded = seperate_seq(sequence_output, doc_len,
-                                                                           ques_len)
-        passage_attention_mask, question_attention_mask, answers_attention_mask, \
-            passage_question_attention_mask, passage_answer_attention_mask, \
-            question_answer_attention_mask = seperate_seq_attention(flat_attention_mask, doc_len,
-                                                                    ques_len)
+        passage_encoded, question_encoded, passage_question_encoded = seperate_seq(sequence_output, doc_len, ques_len)
+        passage_attention_mask, question_attention_mask, passage_question_attention_mask = seperate_seq_attention(flat_attention_mask, doc_len, ques_len)
 
         # matching layer
-        mp_q = self.matching(passage_encoded, question_encoded, passage_attention_mask,
+        mp_q, mq_p = self.matching(passage_encoded, question_encoded, passage_attention_mask,
                                    question_attention_mask)
-        mp_a = self.matching(passage_encoded, answers_encoded, passage_attention_mask,
-                                   answers_attention_mask)
-        mp_qa = self.matching(passage_encoded, question_answer_encoded, passage_attention_mask,
-                                     question_answer_attention_mask)
 
-        # MLP fuse
-        passage_weights = self.fusing_mlp(passage_encoded, mp_q, mp_a, mp_qa)
-                
-        # Returns the weighted token embeddings
-        # passage_encoded  # batch_size x seq_len x embedding_size
-        # passage_weights  # batch_size x seq_len
-        weighted_passage = passage_encoded * passage_weights.unsqueeze(-1)
-        
-        # TODO: write loss function
-        loss = 0.0
 
-        return weighted_passage, loss  # loss is given only if it's training mode
+        # Here we return the question attentive passage representation
+        # to use as the initial hidden state of decoder LSTM
+        return mp_q

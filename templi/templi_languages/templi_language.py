@@ -57,6 +57,7 @@ class TempliLanguage(DomainLanguage):
         self.add_predicate("o", self.overlaps)
         self.add_predicate("O", self.overlapped_by)
 
+        self.table_graph = time_context.get_table_knowledge_graph()
 
         # constant functions for variables
         self.constant_vars = {}
