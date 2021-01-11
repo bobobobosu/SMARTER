@@ -13,6 +13,22 @@ import time
 import pathlib
 import json
 
+with open("/mnt/AAI_Project/temli/data/sentences_logical_forms_train.json", "r") as f:
+    sentences_logical_forms_len_8 = json.load(f)
+with open("/mnt/AAI_Project/temli/data/sentences_logical_forms_len_8_train.json", "r") as f:
+    sentences_logical_forms_len_5 = json.load(f)
+
+def count_empty_logical_forms(sentences_logical_forms):
+    i = 0
+    for k, v in sentences_logical_forms.items():
+        for k1, v1 in v.items():
+            if len(v1["logical_forms"]) == 0:
+                i += 1
+    return i
+
+print(count_empty_logical_forms(sentences_logical_forms_len_5))
+print(count_empty_logical_forms(sentences_logical_forms_len_8))
+eee = 9
 
 # training model
 # PROJECT_ROOT = (pathlib.Path(__file__).parents[0]).resolve()
@@ -35,16 +51,16 @@ import json
 
 
 
-# for generating logical forms
-with open("/mnt/AAI_Project/temli/data/sentence_rels.json", "r") as f:
-    sentence_rels = json.load(f)
-sentences_logical_forms = get_valid_logical_forms(sentence_rels)
-# # write to file
-json.dump(sentences_logical_forms, open("sentences_logical_forms_len_8.json", "w"), indent=4)
-fff = 9
+# # for generating logical forms
+# with open("/mnt/AAI_Project/temli/data/sentence_rels.json", "r") as f:
+#     sentence_rels = json.load(f)
+# sentences_logical_forms = get_valid_logical_forms(sentence_rels)
+# # # write to file
+# json.dump(sentences_logical_forms, open("data/sentences_logical_forms_len_8.json", "w"), indent=4)
+# fff = 9
 
 # for generating training and validation dataset
-with open("/mnt/AAI_Project/temli/data/sentences_logical_forms.json", "r") as f:
+with open("/mnt/AAI_Project/temli/data/sentences_logical_forms_len_8.json", "r") as f:
     sentences_logical_forms = json.load(f)
 dev_keys = list(sentences_logical_forms.keys())[:len(sentences_logical_forms)//5]
 train_keys = list(sentences_logical_forms.keys())[len(sentences_logical_forms)//5:]

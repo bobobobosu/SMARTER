@@ -1210,8 +1210,6 @@ class BertMultiwayMatch(PreTrainedBertModel):
         self.bert = BertModel(config)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.linear_trans = nn.Linear(config.hidden_size, config.hidden_size)
-        self.linear_fuse_p = nn.Linear(config.hidden_size*2, config.hidden_size)
-        self.linear_fuse_q = nn.Linear(config.hidden_size*2, config.hidden_size)
         self.apply(self.init_bert_weights)
 
     def matching(self, passage_encoded, question_encoded, passage_attention_mask, question_attention_mask):
@@ -1271,10 +1269,10 @@ class BertMultiwayMatch(PreTrainedBertModel):
         flat_token_type_ids = token_type_ids
         flat_attention_mask = attention_mask
 
-        
-        sequence_output, pooled_output = self.bert.forward(flat_input_ids, flat_token_type_ids,
-                                                           flat_attention_mask,
-                                                           output_all_encoded_layers=False)
+        with torch.no_grad():
+            sequence_output, pooled_output = self.bert.forward(flat_input_ids, flat_token_type_ids,
+                                                            flat_attention_mask,
+                                                            output_all_encoded_layers=False)
 
         # if ques_len=None, we are using bert as simple text embedder
         if ques_len is None:

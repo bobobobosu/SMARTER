@@ -1,0 +1,185 @@
+{
+    "The financial assistance from the World Bank and the International Monetary Fund are not helping.": {
+        "75_82": {
+            "target_relations": {
+                "12_22": "P"
+            },
+            "logical_forms": [
+                "(P 12_22)",
+                "(P (D 12_22))",
+                "(P (F 12_22))",
+                "(P (M 12_22))",
+                "(P (O 12_22))",
+                "(P (P 12_22))",
+                "(P (S 12_22))",
+                "(P (d 12_22))",
+                "(P (e 12_22))",
+                "(P (f 12_22))",
+                "(P (m 12_22))",
+                "(P (o 12_22))",
+                "(P (p 12_22))",
+                "(P (s 12_22))"
+            ]
+        },
+        "12_22": {
+            "target_relations": {
+                "75_82": "p"
+            },
+            "logical_forms": [
+                "(p 75_82)",
+                "(p (D 75_82))",
+                "(p (F 75_82))",
+                "(p (M 75_82))",
+                "(p (O 75_82))",
+                "(p (P 75_82))",
+                "(p (S 75_82))",
+                "(p (d 75_82))",
+                "(p (e 75_82))",
+                "(p (f 75_82))",
+                "(p (m 75_82))",
+                "(p (o 75_82))",
+                "(p (p 75_82))",
+                "(p (s 75_82))"
+            ]
+        }
+    },
+    "In the last twenty four hours, the value of the Indonesian stock market has fallen by twelve percent.": {
+        "2_24": {
+            "target_relations": {
+                "62_68": "O"
+            },
+            "logical_forms": [
+                "(O 62_68)",
+                "(O (D 62_68))",
+                "(O (F 62_68))",
+                "(O (M 62_68))",
+                "(O (O 62_68))",
+                "(O (P 62_68))",
+                "(O (S 62_68))",
+                "(O (d 62_68))",
+                "(O (e 62_68))",
+                "(O (f 62_68))",
+                "(O (m 62_68))",
+                "(O (o 62_68))",
+                "(O (p 62_68))",
+                "(O (s 62_68))"
+            ]
+        },
+        "62_68": {
+            "target_relations": {
+                "2_24": "o"
+            },
+            "logical_forms": [
+                "(o 2_24)",
+                "(o (D 2_24))",
+                "(o (F 2_24))",
+                "(o (M 2_24))",
+                "(o (O 2_24))",
+                "(o (P 2_24))",
+                "(o (S 2_24))",
+                "(o (d 2_24))",
+                "(o (e 2_24))",
+                "(o (f 2_24))",
+                "(o (m 2_24))",
+                "(o (o 2_24))",
+                "(o (p 2_24))",
+                "(o (s 2_24))"
+            ]
+        }
+    },
+    "More problems in Hong Kong for a place, for an economy, that many experts thought was once invincible.": {
+        "60_67": {
+            "target_relations": {
+                "4_12": "p"
+            },
+            "logical_forms": [
+                "(p 4_12)",
+                "(p (D 4_12))",
+                "(p (F 4_12))",
+                "(p (M 4_12))",
+                "(p (O 4_12))",
+                "(p (P 4_12))",
+                "(p (S 4_12))",
+                "(p (d 4_12))",
+                "(p (e 4_12))",
+                "(p (f 4_12))",
+                "(p (m 4_12))",
+                "(p (o 4_12))",
+                "(p (p 4_12))",
+                "(p (s 4_12))"
+            ]
+        },
+        "4_12": {
+            "target_relations": {
+                "74_84": "P",
+                "60_67": "P"
+            },
+            "logical_forms": []
+        },
+        "74_84": {
+            "target_relations": {
+                "4_12": "p"
+            },
+            "logical_forms": [
+                "(p 4_12)",
+                "(p (D 4_12))",
+                "(p (F 4_12))",
+                "(p (M 4_12))",
+                "(p (O 4_12))",
+                "(p (P 4_12))",
+                "(p (S 4_12))",
+                "(p (d 4_12))",
+                "(p (e 4_12))",
+                "(p (f 4_12))",
+                "(p (m 4_12))",
+                "(p (o 4_12))",
+                "(p (p 4_12))",
+                "(p (s 4_12))"
+            ]
+        }
+    },
+    "Not that long ago, before the Chinese takeover, the news about real estate here was that the sky was the limit the highest prices in the world.": {
+        "31_39": {
+            "target_relations": {
+                "43_47": "P"
+            },
+            "logical_forms": [
+                "(P 43_47)",
+                "(P (D 43_47))",
+                "(P (F 43_47))",
+                "(P (M 43_47))",
+                "(P (O 43_47))",
+                "(P (P 43_47))",
+                "(P (S 43_47))",
+                "(P (d 43_47))",
+                "(P (e 43_47))",
+                "(P (f 43_47))",
+                "(P (m 43_47))",
+                "(P (o 43_47))",
+                "(P (p 43_47))",
+                "(P (s 43_47))"
+            ]
+        },
+        "43_47": {
+            "target_relations": {
+                "31_39": "p"
+            },
+            "logical_forms": [
+                "(p 31_39)",
+                "(p (D 31_39))",
+                "(p (F 31_39))",
+                "(p (M 31_39))",
+                "(p (O 31_39))",
+                "(p (P 31_39))",
+                "(p (S 31_39))",
+                "(p (d 31_39))",
+                "(p (e 31_39))",
+                "(p (f 31_39))",
+                "(p (m 31_39))",
+                "(p (o 31_39))",
+                "(p (p 31_39))",
+                "(p (s 31_39))"
+            ]
+        }
+    }
+}

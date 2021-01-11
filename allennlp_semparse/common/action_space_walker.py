@@ -96,7 +96,6 @@ class ActionSpaceWalker:
                 # shorter than the max_path_length. The remaining paths will be discarded.
                 elif len(path) <= self._max_path_length:
                     incomplete_paths.append((nonterminal_buffer, path))
-        nnn = 8
 
     @staticmethod
     def _get_right_side_parts(action: str) -> List[str]:

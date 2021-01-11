@@ -2,7 +2,7 @@ from allennlp.data.tokenizers.tokenizer import Tokenizer
 from templi.preprocessors.tokenization import BertTokenizer
 from overrides import overrides
 from typing import List, Optional
-from allennlp.data.tokenizers.token import Token
+from allennlp.data.tokenizers.tokenizer import Token
 
 
 class TemliTokenizer(Tokenizer):
@@ -22,6 +22,6 @@ class TemliTokenizer(Tokenizer):
 
     def tokenize_to_str(self, text: str) -> List[str]:
         return self._tokenizer.tokenize(text)
-    
+
     def convert_tokens_to_ids(self, tokens: List[str]) -> List[int]:
         return self._tokenizer.convert_tokens_to_ids(tokens)

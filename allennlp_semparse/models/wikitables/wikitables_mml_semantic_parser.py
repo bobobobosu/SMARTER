@@ -12,24 +12,20 @@ from allennlp.modules import (
     Seq2VecEncoder,
     TextFieldEmbedder,
 )
-from templi.templi_languages.allen_algebra import infer_relation
-from templi.templi_languages.templi_language import TempliLanguage
+
+from allennlp_semparse.domain_languages import WikiTablesLanguage
 from allennlp_semparse.fields.production_rule_field import ProductionRuleArray
-from templi.models.templi_semantic_parser import TempliSemanticParser
+from allennlp_semparse.models.wikitables.wikitables_semantic_parser import WikiTablesSemanticParser
 from allennlp_semparse.state_machines import BeamSearch
 from allennlp_semparse.state_machines.states import GrammarBasedState
 from allennlp_semparse.state_machines.trainers import MaximumMarginalLikelihood
-from allennlp_semparse.state_machines.transition_functions import (
-    LinkingTransitionFunction,
-)
-from templi.templi_languages.templi_language import TempliLanguage
-from templi.models.temli_multiway_match import BertMultiwayMatch
-from itertools import combinations
+from allennlp_semparse.state_machines.transition_functions import LinkingTransitionFunction
+
 
 @Model.register("wikitables_mml_parser")
-class TempliMmlSemanticParser(TempliSemanticParser):
+class WikiTablesMmlSemanticParser(WikiTablesSemanticParser):
     """
-    A ``WikiTablesMmlSemanticParser`` is a :class:`TempliSemanticParser` which is trained to
+    A ``WikiTablesMmlSemanticParser`` is a :class:`WikiTablesSemanticParser` which is trained to
     maximize the marginal likelihood of an approximate set of logical forms which give the correct
     denotation. This is a re-implementation of the model used for the paper `Neural Semantic Parsing with Type
     Constraints for Semi-Structured Tables
@@ -40,6 +36,7 @@ class TempliMmlSemanticParser(TempliSemanticParser):
 
     Parameters
     ----------
+    vocab : ``Vocabulary``
     question_embedder : ``TextFieldEmbedder``
         Embedder for questions. Passed to super class.
     action_embedding_dim : ``int``
@@ -90,9 +87,8 @@ class TempliMmlSemanticParser(TempliSemanticParser):
 
     def __init__(
         self,
-        cuda_device: int,
-        bert_model: str,
         vocab: Vocabulary,
+        question_embedder: TextFieldEmbedder,
         action_embedding_dim: int,
         encoder: Seq2SeqEncoder,
         entity_encoder: Seq2VecEncoder,
@@ -109,9 +105,8 @@ class TempliMmlSemanticParser(TempliSemanticParser):
     ) -> None:
         use_similarity = use_neighbor_similarity_for_linking
         super().__init__(
-            cuda_device=cuda_device,
-            bert_model=bert_model,
             vocab=vocab,
+            question_embedder=question_embedder,
             action_embedding_dim=action_embedding_dim,
             encoder=encoder,
             entity_encoder=entity_encoder,
@@ -136,10 +131,11 @@ class TempliMmlSemanticParser(TempliSemanticParser):
     @overrides
     def forward(
         self,  # type: ignore
-        question: torch.LongTensor,
+        question: Dict[str, torch.LongTensor],
         table: Dict[str, torch.LongTensor],
-        world: List[TempliLanguage],
+        world: List[WikiTablesLanguage],
         actions: List[List[ProductionRuleArray]],
+        target_values: List[List[str]] = None,
         target_action_sequences: torch.LongTensor = None,
         metadata: List[Dict[str, Any]] = None,
     ) -> Dict[str, torch.Tensor]:
@@ -159,9 +155,9 @@ class TempliMmlSemanticParser(TempliSemanticParser):
             ``KnowledgeGraphField``.  This output is similar to a ``TextField`` output, where each
             entity in the table is treated as a "token", and we will use a ``TextFieldEmbedder`` to
             get embeddings for each entity.
-        world : ``List[TempliLanguage]``
-            We use a ``MetadataField`` to get the ``TempliLanguage`` object for each input instance.
-            Because of how ``MetadataField`` works, this gets passed to us as a ``List[TempliLanguage]``,
+        world : ``List[WikiTablesLanguage]``
+            We use a ``MetadataField`` to get the ``WikiTablesLanguage`` object for each input instance.
+            Because of how ``MetadataField`` works, this gets passed to us as a ``List[WikiTablesLanguage]``,
         actions : ``List[List[ProductionRuleArray]]``
             A list of all possible actions for each ``world`` in the batch, indexed into a
             ``ProductionRuleArray`` using a ``ProductionRuleField``.  We will embed all of these
@@ -179,7 +175,7 @@ class TempliMmlSemanticParser(TempliSemanticParser):
         """
         outputs: Dict[str, Any] = {}
         rnn_state, grammar_state = self._get_initial_rnn_and_grammar_state(
-            question, table, world, actions, metadata, outputs
+            question, table, world, actions, outputs
         )
         batch_size = len(rnn_state)
         initial_score = rnn_state[0].hidden_state.new_zeros(batch_size)
@@ -191,7 +187,7 @@ class TempliMmlSemanticParser(TempliSemanticParser):
             rnn_state=rnn_state,
             grammar_state=grammar_state,
             possible_actions=actions,
-            extras=metadata,
+            extras=target_values,
             debug_info=None,
         )
 
@@ -204,26 +200,19 @@ class TempliMmlSemanticParser(TempliSemanticParser):
 
         if self.training:
             return self._decoder_trainer.decode(
-                initial_state,
-                self._decoder_step,
-                (target_action_sequences, target_mask),
+                initial_state, self._decoder_step, (target_action_sequences, target_mask)
             )
         else:
             if target_action_sequences is not None:
                 outputs["loss"] = self._decoder_trainer.decode(
-                    initial_state,
-                    self._decoder_step,
-                    (target_action_sequences, target_mask),
+                    initial_state, self._decoder_step, (target_action_sequences, target_mask)
                 )["loss"]
             num_steps = self._max_decoding_steps
             # This tells the state to start keeping track of debug info, which we'll pass along in
             # our output dictionary.
             initial_state.debug_info = [[] for _ in range(batch_size)]
             best_final_states = self._beam_search.search(
-                num_steps,
-                initial_state,
-                self._decoder_step,
-                keep_final_unfinished_states=False,
+                num_steps, initial_state, self._decoder_step, keep_final_unfinished_states=False
             )
             for i in range(batch_size):
                 # Decoding may not have terminated with any completed logical forms, if `num_steps`
@@ -241,36 +230,9 @@ class TempliMmlSemanticParser(TempliSemanticParser):
                         self._action_sequence_accuracy(sequence_in_targets)
 
             self._compute_validation_outputs(
-                actions, best_final_states, world, metadata, outputs
+                actions, best_final_states, world, target_values, metadata, outputs
             )
-
-            for idx, input in enumerate(metadata):
-                output = {key: val[idx] for key, val in outputs.items() if isinstance(val, list)}
-                constant_vars = world[idx].constant_vars
-                denotation = output['answer']
-                pairs = combinations(list(constant_vars.keys()),2)
-                relations = []
-                for pair_of_vars in pairs:
-                    me_event = pair_of_vars[0]
-                    that_event = pair_of_vars[1]
-                    rel = infer_relation(denotation, constant_vars[me_event].intervalvar)
-                    relations += [(
-                        self.spaceless_rng_to_str(input['sentence'], me_event),
-                        self.spaceless_rng_to_str(input['sentence'], that_event),
-                        rel
-                    )]
-                result_debug = {
-                    'question': input['sentence'],
-                    'events': [self.spaceless_rng_to_str(input['sentence'], i) for i in input['temp_vars']],
-                    'predicted_logical_form':  output['logical_form'],
-                    'predicted_rels': relations
-                }
-                print(result_debug)
-
             return outputs
-    
-    def spaceless_rng_to_str(self, sentence: str, spacelspaceless_rng: str):
-        range_tuple = tuple(map(lambda x: int(x), spacelspaceless_rng.split("_")))
-        return sentence.replace(" ", "")[range_tuple[0] : range_tuple[1]]
+
 
 default_predictor = "wikitables-parser"
