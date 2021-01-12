@@ -55,7 +55,7 @@ def logical_forms_of_sentence(sentence_rels: Tuple):
     for main_var in temp_vars:
         # generate possible logical forms
         target_vars = temp_vars.difference({main_var})
-        context = TempliTimeContext(temp_vars=target_vars)
+        context = TempliTimeContext(temp_vars=target_vars, knowledge_graph={}) # knowledge_graph not required to generate lf
         world = TempliLanguage(context)
         walker = ActionSpaceWalker(world, max_path_length=params["LF_LEN"])
         all_logical_forms = walker.get_all_logical_forms(

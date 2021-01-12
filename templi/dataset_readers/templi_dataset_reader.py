@@ -50,15 +50,22 @@ class TempliDatasetReader(DatasetReader):
     Returns an Iterator if Instances
     The input dataset must look like this:
     {
-    "The financial assistance from the World Bank and the International Monetary Fund are not helping.": {
-        "75_82": {                  // the "me_event"
-            "target_relations": {   // all the events in the key
-                "12_22": "P"        // what is "me_event" related to "that_event"?
-            },
-            "logical_forms": [
-                "(P 12_22)",        // valid logical form that evaluates correct relations in target_relations
-            ]
-        },...
+        "sentences":{
+            "The financial assistance from the World Bank and the International Monetary Fund are not helping.": {
+                "75_82": {                  // the "me_event"
+                    "target_relations": {   // all the events in the key
+                        "12_22": "P"        // what is "me_event" related to "that_event"?
+                    },
+                    "logical_forms": [
+                        "(P 12_22)",        // valid logical form that evaluates correct relations in target_relations
+                    ]
+                },...
+            },...
+        "knowledge_graph":{
+            "12/25":["Christmans",...],
+            "1/1":["New Years Day",...],
+            ...
+        }
     }
     Note that 12_22 means key_without_spaces[12:22]
     """
@@ -68,7 +75,7 @@ class TempliDatasetReader(DatasetReader):
             with open(file_path, "r") as f:
                 data = json.load(f)
                 self.sentences_logical_forms = []
-                for sentence, v in data.items():
+                for sentence, v in data["sentences"].items():
                     for main_var, answer in v.items():
                         # this is one data that is going to be tokenized and then converted to Instance
                         one_data = {
@@ -77,6 +84,7 @@ class TempliDatasetReader(DatasetReader):
                             "temp_vars": list(v.keys()),
                             "target_relations": answer["target_relations"],
                             "logical_forms": answer["logical_forms"],
+                            "knowledge_graph": data["knowledge_graph"],
                         }
                         self.sentences_logical_forms.append(one_data)
         return filter(
@@ -124,7 +132,8 @@ class TempliDatasetReader(DatasetReader):
             temp_vars={
                 var: self.spaceless_rng_to_str(one_data["sentence"], var)
                 for var in one_data["temp_vars"]
-            }
+            },
+            knowledge_graph=one_data["knowledge_graph"],
         )
         world = TempliLanguage(context)
         world_field = MetadataField(world)

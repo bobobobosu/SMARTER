@@ -18,55 +18,61 @@ Define "time-related":
 import os
 import pandas as pd
 
-out_dir = "csv-temporal-0.1"
-ratio_threshold = 0.1  # 0.1 => subset of 47%; 0.2 => subset of 9% (See ``stats.txt```)
 
+def get_temporal_subset(WikiTableQuestionsPath, ratio_threshold=0.1):
+    list_of_tables = []
+    # out_dir = "csv-temporal-0.1"
+    # ratio_threshold = (
+    #     0.1  # 0.1 => subset of 47%; 0.2 => subset of 9% (See ``stats.txt```)
+    # )
 
-def mkdir_if_not_dir(dir_path):
-    if not os.path.isdir(dir_path):
-        os.mkdir(dir_path)
+    # def mkdir_if_not_dir(dir_path):
+    #     if not os.path.isdir(dir_path):
+    #         os.mkdir(dir_path)
 
-
-ctr1, ctr2, ctr3 = 0, 0, 0
-mkdir_if_not_dir(out_dir)
-nerTags = set()
-for root, dirs, files in os.walk("csv"):
-    if not root.endswith("-csv"):
-        continue
-    tagged_root = root.replace("csv", "tagged")
-    segs = root.split(os.path.sep)
-    out_root = os.path.sep.join([*segs[:-2], out_dir, (segs[-1] + "-temporal")])
-    mkdir_if_not_dir(out_root)
-
-    for name in files:
-        if not name.endswith(".csv"):
+    ctr1, ctr2, ctr3 = 0, 0, 0
+    # mkdir_if_not_dir(out_dir)
+    nerTags = set()
+    for root, dirs, files in os.walk(WikiTableQuestionsPath):
+        if not root.endswith("-csv"):
             continue
-        ctr1 += 1
-        try:
-            with open(os.path.join(root, name), "r") as csv_f:
-                csv_df = pd.read_csv(csv_f)
-            with open(
-                os.path.join(tagged_root, name.replace("csv", "tagged")), "r"
-            ) as tagged_f:
-                tagged_df = pd.read_csv(tagged_f, sep="\t")
+        tagged_root = root.replace("csv", "tagged")
+        segs = root.split(os.path.sep)
+        # out_root = os.path.sep.join([*segs[:-2], out_dir, (segs[-1] + "-temporal")])
+        # mkdir_if_not_dir(out_root)
 
-            tagged_df_drop_nas = tagged_df.dropna(subset=["date"])
-            if len(tagged_df_drop_nas) > int(len(tagged_df) * ratio_threshold):
-                csv_df.to_csv(os.path.join(out_root, name))
-                ctr2 += 1
-        except Exception as e:
-            print("Failed to process {}: {}".format(name, e))
-            ctr3 += 1
+        for name in files:
+            if not name.endswith(".csv"):
+                continue
+            ctr1 += 1
+            try:
+                with open(os.path.join(root, name), "r") as csv_f:
+                    csv_df = pd.read_csv(csv_f)
+                with open(
+                    os.path.join(tagged_root, name.replace("csv", "tagged")), "r"
+                ) as tagged_f:
+                    tagged_df = pd.read_csv(tagged_f, sep="\t")
 
-stats = "\n".join(
-    [
-        "Threshold = {}".format(ratio_threshold),
-        "A subset of {} over {} ({:.1f}%) created.".format(
-            ctr2, ctr1, ctr2 / ctr1 * 100
-        ),
-        "{} failed ({:.1f}%).".format(ctr3, ctr3 / ctr1 * 100),
-    ]
-)
-print(stats)
-with open(os.path.join(out_dir, "stats.txt"), 'w') as stats_f:
-    stats_f.write(stats + "\n")
+                tagged_df_drop_nas = tagged_df.dropna(subset=["date"])
+                if len(tagged_df_drop_nas) > int(len(tagged_df) * ratio_threshold):
+                    list_of_tables += [csv_df]
+                    # csv_df.to_csv(os.path.join(out_root, name))
+                    ctr2 += 1
+            except Exception as e:
+                print("Failed to process {}: {}".format(name, e))
+                ctr3 += 1
+
+    stats = "\n".join(
+        [
+            "Threshold = {}".format(ratio_threshold),
+            "A subset of {} over {} ({:.1f}%) created.".format(
+                ctr2, ctr1, ctr2 / ctr1 * 100
+            ),
+            "{} failed ({:.1f}%).".format(ctr3, ctr3 / ctr1 * 100),
+        ]
+    )
+    print(stats)
+    # with open(os.path.join(out_dir, "stats.txt"), "w") as stats_f:
+    #     stats_f.write(stats + "\n")
+
+    return list_of_tables
