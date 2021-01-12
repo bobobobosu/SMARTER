@@ -12,18 +12,34 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "train",
+            "name": "start-fresh",
             "type": "python",
             "request": "launch",
-            "program": "temli_train.py",
+            "program": "training/start_fresh.py",
             "console": "integratedTerminal"
         },
         {
-            "name": "gen_logical_form",
+            "name": "gen-cache",
             "type": "python",
             "request": "launch",
-            "program": "gen_logical_form.py",
+            "program": "training/gen_cache.py",
+            "cwd": "${workspaceFolder}",
             "console": "integratedTerminal"
-        }
+        },
+        {
+            "name": "train-from-scratch",
+            "type": "python",
+            "request": "launch",
+            "program": "training/temli_train.py",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "train-from-serialization",
+            "type": "python",
+            "request": "launch",
+            "program": "training/temli_train.py",
+            "args": ["--recover"],
+            "console": "integratedTerminal"
+        },
     ]
 }
