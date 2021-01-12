@@ -2,6 +2,7 @@
 
 ## Step 1: clean up the project folder
 Delete any files and folders that are not needed at runtime.
+edit start_fresh.py to include any additional folders
 Then run `start-fresh` in vscode
 
 ## Step 2: generate cache for dataset

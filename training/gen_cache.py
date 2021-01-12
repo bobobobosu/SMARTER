@@ -3,7 +3,7 @@ from tqdm import tqdm
 from pathlib import Path
 import sys
 import json
-
+import glob
 """
 This file converts raw data file to temli format
 You have to edit this manually to call the right converters
@@ -18,7 +18,8 @@ sys.path.append(os.getcwd())  # add project root to path
 cache_params = {
     "LF_LEN": 1,
     "MAX_LF_NUM": 1,
-    "DPD_THREADS": 6,  # don't affect outcome
+    "DPD_THREADS": 6,  # doesn't affect outcome
+    "KG_VERTICES": 5,
 }
 
 
@@ -37,11 +38,13 @@ else:
     from templi.dataset_converters.get_temporal_subset import get_temporal_subset
 
     def folder_of_tml_to_sentence_rels(folderpath):
-        file_list = os.listdir(folderpath)
+        file_list = []
+        for filename in glob.iglob(folderpath + '/**/*.tml', recursive=True):
+            file_list += [filename]
         print("parse {}...".format(folderpath))
         sentence_rels = {}
         for file in tqdm(file_list, desc="extracting sentence_rels"):
-            with open(os.path.join(folderpath, file)) as f:
+            with open(file) as f:
                 news = f.read().replace("\n", "")
                 news = news.replace(
                     "encoding='us-ascii'", ""
@@ -59,7 +62,9 @@ else:
         return temli_data
 
     def tables_to_knowledge_graph(knowledge_graph_data_path):
-        list_of_tables = get_temporal_subset(knowledge_graph_data_path, ratio_threshold=0.1)
+        list_of_tables = get_temporal_subset(
+            knowledge_graph_data_path, ratio_threshold=0.1
+        )
         kg = {}
         for table in list_of_tables:
             for column in table.columns:
@@ -68,24 +73,33 @@ else:
                     value = str(value)
                     kg[column] = [value] if column not in kg else kg[column] + [value]
                     kg[value] = [column] if value not in kg else kg[value] + [column]
-        kg = {k:list(set(v)) for k, v in kg.items()}
-        return kg
-       
+        kg = {k: set(v) for k, v in kg.items()}
+
+        # parameterize KG size
+        vertices_to_drop = set(list(kg.keys())[cache_params["KG_VERTICES"] :])
+        for v in vertices_to_drop:
+            del kg[v]
+        kg = {k: v.difference(vertices_to_drop) for k, v in kg.items()}
+
+        # make serializable
+        return {k: list(v) for k, v in kg.items()}
+
     # Generate knowledge_graph data
-    knowledge_graph_data_path = "training/data/WikiTableQuestions"
-    traing_data["knowledge_graph"] = validation_data["knowledge_graph"] = tables_to_knowledge_graph(knowledge_graph_data_path)  
+    # knowledge_graph_data_path = "training/data/WikiTableQuestions"
+    # traing_data["knowledge_graph"] = validation_data[
+    #     "knowledge_graph"
+    # ] = tables_to_knowledge_graph(knowledge_graph_data_path)
 
     # Generate sentences data
-    traing_data_path = "training/data/TimeBank-dense-master/train"
+    traing_data_path = "training/data/tbaq-2013-03"
     traing_data["sentences"] = sentence_rels_to_temli_data(
         folder_of_tml_to_sentence_rels(traing_data_path)
     )
 
-    validation_data_path = "training/data/TimeBank-dense-master/test"
+    validation_data_path = "training/data/te3-platinumstandard"
     validation_data["sentences"] = sentence_rels_to_temli_data(
         folder_of_tml_to_sentence_rels(validation_data_path)
     )
-
 
 
 # Writes to file

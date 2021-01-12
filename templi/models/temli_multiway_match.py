@@ -1289,3 +1289,42 @@ class BertMultiwayMatch(PreTrainedBertModel):
         # Here we return the question attentive passage representation
         # to use as the initial hidden state of decoder LSTM
         return mp_q
+
+
+# BERT with event attention
+class BertEventAttentive(PreTrainedBertModel):
+    """BERT model with event attention mechanisms.
+    This module is composed of the BERT model with a linear layer on top of
+    the pooled output.
+
+    doc_len needs to be defined first
+    """
+    def __init__(self, config, doc_len=128):
+        super(BertEventAttentive, self).__init__(config)
+        self.config = config
+        self.bert = BertModel(config)
+        self.dropout = nn.Dropout(config.hidden_dropout_prob)
+        self.attn = nn.Linear(config.hidden_size, doc_len)
+        self.apply(self.init_bert_weights)
+
+    def forward(self, input_ids, token_type_ids=None, attention_mask=None, doc_len=None,
+                ques_len=None):
+        
+        with torch.no_grad():
+            sequence_output, pooled_output = self.bert.forward(input_ids, token_type_ids,
+                                                            attention_mask,
+                                                            output_all_encoded_layers=False)
+
+        # if ques_len=None, we are using bert as simple text embedder
+        if ques_len is None:
+            return sequence_output
+
+        passage_encoded, question_encoded, passage_question_encoded = seperate_seq(sequence_output, doc_len, ques_len)
+        passage_attention_mask, question_attention_mask, passage_question_attention_mask = seperate_seq_attention(attention_mask, doc_len, ques_len)
+
+        pooled_output = self.dropout(pooled_output)
+        attention_weights = self.attn(pooled_output)
+
+        # Here we return the question attentive passage representation
+        # to use as the initial hidden state of decoder LSTM
+        return mp_q

@@ -54,8 +54,12 @@ def get_temporal_subset(WikiTableQuestionsPath, ratio_threshold=0.1):
                     tagged_df = pd.read_csv(tagged_f, sep="\t")
 
                 tagged_df_drop_nas = tagged_df.dropna(subset=["date"])
+                tagged_df_temp = tagged_df.loc[tagged_df['nerTags'].isin(['DATE','TIME','DURATION'])]
+                temporol_columns = csv_df.iloc[:,list(set(tagged_df_temp['col']))]
+
                 if len(tagged_df_drop_nas) > int(len(tagged_df) * ratio_threshold):
-                    list_of_tables += [csv_df]
+                    date_columns = None
+                    list_of_tables += [temporol_columns]
                     # csv_df.to_csv(os.path.join(out_root, name))
                     ctr2 += 1
             except Exception as e:
