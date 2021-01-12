@@ -110,8 +110,11 @@ def tlink_handler(eid, eiid, parsed):
                 else tlink.attrib["timeID"]
             )
             relation_type = tlink.attrib["relType"]
-            related_time_text = parsed.xpath(
-                'TIMEX3[@tid="{}"]'.format(relate_tid))[0].text
+            try:
+                related_time_text = parsed.xpath(
+                    'TIMEX3[@tid="{}"]'.format(relate_tid))[0].text
+            except IndexError:
+                continue
             relation_text = "{} {} {}".format(
                 primary_text, relation_type, related_time_text)
             relations += [{"lhs": eid,
@@ -120,11 +123,17 @@ def tlink_handler(eid, eiid, parsed):
         elif "eventInstanceID" in tlink.attrib and tlink.attrib["eventInstanceID"] == eiid:
             relate_eiid = tlink.attrib["relatedToEventInstance"]
             relation_type = tlink.attrib["relType"]
-            relate_eid = parsed.xpath('MAKEINSTANCE[@eiid="{}"]'.format(relate_eiid))[0].attrib[
-                "eventID"
-            ]
-            related_event_text = parsed.xpath(
-                'EVENT[@eid="{}"]'.format(relate_eid))[0].text
+            try:
+                relate_eid = parsed.xpath('MAKEINSTANCE[@eiid="{}"]'.format(relate_eiid))[0].attrib[
+                    "eventID"
+                ]
+            except IndexError:
+                continue
+            try:
+                related_event_text = parsed.xpath(
+                    'EVENT[@eid="{}"]'.format(relate_eid))[0].text
+            except IndexError:
+                continue
             relation_text = "{} {} {}".format(
                 primary_text, relation_type, related_event_text)
             relations += [{"lhs": eid,
@@ -136,11 +145,17 @@ def tlink_handler(eid, eiid, parsed):
         ):
             relate_eiid = tlink.attrib["eventInstanceID"]
             relation_type = tlink.attrib["relType"]
-            relate_eid = parsed.xpath('MAKEINSTANCE[@eiid="{}"]'.format(relate_eiid))[0].attrib[
-                "eventID"
-            ]
-            related_event_text = parsed.xpath(
-                'EVENT[@eid="{}"]'.format(relate_eid))[0].text
+            try:
+                relate_eid = parsed.xpath('MAKEINSTANCE[@eiid="{}"]'.format(relate_eiid))[0].attrib[
+                    "eventID"
+                ]
+            except IndexError:
+                continue
+            try:
+                related_event_text = parsed.xpath(
+                    'EVENT[@eid="{}"]'.format(relate_eid))[0].text
+            except IndexError:
+                continue
             relation_text = "{} {} {}".format(
                 related_event_text, relation_type, primary_text)
             relations += [{"lhs": relate_eid,
