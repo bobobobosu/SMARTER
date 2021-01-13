@@ -1,5 +1,5 @@
 from typing import List, Dict, Any
-from templi.models.temli_multiway_match import BertMultiwayMatch
+from templi.models.temli_multiway_match import BertMultiwayMatch, BertEventAttentive
 from allennlp.data import Vocabulary
 from allennlp.common import Registrable
 from torch import LongTensor

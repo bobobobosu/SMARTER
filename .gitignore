@@ -163,3 +163,5 @@ serialization*/**
 # Dataset
 training/data/*
 training/cache/*
+training/16*
+training/ser*
