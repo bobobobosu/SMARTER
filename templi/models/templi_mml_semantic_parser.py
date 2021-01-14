@@ -26,6 +26,7 @@ from templi.templi_languages.templi_language import TempliLanguage
 from templi.models.temli_multiway_match import BertMultiwayMatch
 from itertools import combinations
 
+
 @Model.register("wikitables_mml_parser")
 class TempliMmlSemanticParser(TempliSemanticParser):
     """
@@ -134,7 +135,46 @@ class TempliMmlSemanticParser(TempliSemanticParser):
         )
 
     @overrides
-    def forward(
+    def forward(self, *args, **kwargs):
+        if self.training:
+            # when training, we process each event in a sentence seperately
+            outputs = self.forward_train(*args, **kwargs)  # (batch_size,...)
+            return outputs
+        else:
+            # when validating, we process all events in a sentence all at once
+            list_of_outputs = []  # (me_event_num, batch_size,...)
+            for idx, question in enumerate(kwargs["question"].transpose(0, 1)):
+                each_kwargs = kwargs.copy()
+                each_kwargs["question"] = question
+                each_kwargs["metadata"] = [i[idx] for i in kwargs["metadata"]]
+                list_of_outputs.append(self.forward_train(*args, **each_kwargs))
+
+            batch_size = len(list_of_outputs[0]["answer"])
+
+            # calculate holistic denotation accuracy
+            # we need logical forms for each me_event and all target_rels
+            final_output = list_of_outputs[0]
+            for idx in range(batch_size):  # batch_size
+                world = kwargs["world"][idx]
+                list_of_main_var = [
+                    output["metadata"][idx]["main_var"] for output in list_of_outputs
+                ]
+                list_of_denotation = [
+                    output["answer"][idx] for output in list_of_outputs
+                ]
+                list_of_target_rels = [
+                    output["metadata"][idx]["target_relations"]
+                    for output in list_of_outputs
+                ]
+                holistic_denotation_acc = world.evaluate_logical_form_holistically(
+                    dict(zip(list_of_main_var, list_of_denotation)),
+                    dict(zip(list_of_main_var, list_of_target_rels)),
+                )
+                self._holistic_denotation_accuracy(holistic_denotation_acc)
+            return final_output  # (batch_size,...)
+
+    # @overrides
+    def forward_train(
         self,  # type: ignore
         question: torch.LongTensor,
         table: Dict[str, torch.LongTensor],
@@ -245,32 +285,44 @@ class TempliMmlSemanticParser(TempliSemanticParser):
             )
 
             for idx, input in enumerate(metadata):
-                output = {key: val[idx] for key, val in outputs.items() if isinstance(val, list)}
+                output = {
+                    key: val[idx]
+                    for key, val in outputs.items()
+                    if isinstance(val, list)
+                }
                 constant_vars = world[idx].constant_vars
-                denotation = output['answer']
-                pairs = combinations(list(constant_vars.keys()),2)
+                denotation = output["answer"]
+                pairs = combinations(list(constant_vars.keys()), 2)
                 relations = []
                 for pair_of_vars in pairs:
                     me_event = pair_of_vars[0]
                     that_event = pair_of_vars[1]
-                    rel = infer_relation(denotation, constant_vars[me_event].intervalvar)
-                    relations += [(
-                        self.spaceless_rng_to_str(input['sentence'], me_event),
-                        self.spaceless_rng_to_str(input['sentence'], that_event),
-                        rel
-                    )]
+                    rel = infer_relation(
+                        denotation, constant_vars[me_event].intervalvar
+                    )
+                    relations += [
+                        (
+                            self.spaceless_rng_to_str(input["sentence"], me_event),
+                            self.spaceless_rng_to_str(input["sentence"], that_event),
+                            rel,
+                        )
+                    ]
                 result_debug = {
-                    'question': input['sentence'],
-                    'events': [self.spaceless_rng_to_str(input['sentence'], i) for i in input['temp_vars']],
-                    'predicted_logical_form':  output['logical_form'],
-                    'predicted_rels': relations
+                    "question": input["sentence"],
+                    "events": [
+                        self.spaceless_rng_to_str(input["sentence"], i)
+                        for i in input["temp_vars"]
+                    ],
+                    "predicted_logical_form": output["logical_form"],
+                    "predicted_rels": relations,
                 }
-                print(result_debug)
+                # print(result_debug)
 
             return outputs
-    
+
     def spaceless_rng_to_str(self, sentence: str, spacelspaceless_rng: str):
         range_tuple = tuple(map(lambda x: int(x), spacelspaceless_rng.split("_")))
         return sentence.replace(" ", "")[range_tuple[0] : range_tuple[1]]
+
 
 default_predictor = "wikitables-parser"

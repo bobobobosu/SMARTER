@@ -1137,7 +1137,7 @@ class BertForTokenClassification(PreTrainedBertModel):
         self.classifier = nn.Linear(config.hidden_size, num_labels)
         self.apply(self.init_bert_weights)
 
-    def forward(self, input_ids, token_type_ids=None, attention_mask=None, labels=None):
+    def forward(self, input_ids, token_type_ids=None, attention_mask=None, labels=None, return_dict=True):
         sequence_output, _ = self.bert(
             input_ids, token_type_ids, attention_mask, output_all_encoded_layers=False
         )
@@ -1147,7 +1147,7 @@ class BertForTokenClassification(PreTrainedBertModel):
         if labels is not None:
             loss_fct = CrossEntropyLoss()
             loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
-            return loss
+            return loss, logits
         else:
             return logits
 

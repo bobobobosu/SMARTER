@@ -34,6 +34,14 @@ p = Params(
     {
         "dataset_reader": {
             "type": "templi.dataset_readers.templi_dataset_reader.TempliDatasetReader",
+            "training": True,
+            "lazy": True,
+            "bert_model": "bert-base-uncased",
+            "do_lower_case": True,
+        },
+        "validation_dataset_reader": {
+            "type": "templi.dataset_readers.templi_dataset_reader.TempliDatasetReader",
+            "training": False,
             "lazy": True,
             "bert_model": "bert-base-uncased",
             "do_lower_case": True,

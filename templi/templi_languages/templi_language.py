@@ -84,6 +84,29 @@ class TempliLanguage(DomainLanguage):
             return False
         return True
 
+    def evaluate_logical_form_holistically(self, denotation_dict:Dict[str, TimeInterval], target_rels:Dict[str,Dict[str,str]]):
+        # first we have to bind variables of events among denotations so that the merged graph would be connected
+        # we do nothing here because when dataset reader takes the input, the TimeIntervals are guaranteed to be
+        # binded accross instances within one data TODO there may be a better way to do this
+
+        # second we merge the allen_relations_list and constraints_list of each TimeInterval
+        merged_allen_relations_list = product([i.allen_relations_list for i in denotation_dict.values()])
+        merged_constraints_list = product([i.constraints_list for i in denotation_dict.values()])
+
+        # third we infer the relations between each pair of events
+        full_hits = sum([len(v) for k, v in target_rels.items()])
+        hits = 0
+        for main_var, v in target_rels.items():
+            for target_var, rel in v.items():
+                for allen_relations_list in merged_allen_relations_list:
+                    denotation_dict[main_var].allen_relations_list = allen_relations_list
+                    # we have to get the relations each pair of events correct
+                    rel = infer_relation(denotation_dict[main_var], self.constant_vars[target_var].intervalvar)
+                    if rel == target_rels[main_var][target_var]:
+                        hits += 1
+
+        return hits/full_hits if full_hits > 0 else 1
+
     def terminate(self, lhs: TimeInterval) -> FinalTimeInterval:
         return FinalTimeInterval(lhs)
 

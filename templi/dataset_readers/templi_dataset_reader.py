@@ -33,7 +33,7 @@ max_seq_length = (
 
 @DatasetReader.register("templi")
 class TempliDatasetReader(DatasetReader):
-    def __init__(self, bert_model, do_lower_case, lazy=False) -> None:
+    def __init__(self, training, bert_model, do_lower_case, lazy=False) -> None:
         super().__init__(lazy=lazy)
         self.sentences_logical_forms = None  # type: Dict[str:Dict[str:Any]]
         self._tokenizer = TemliTokenizer(bert_model, do_lower_case=do_lower_case)
@@ -43,6 +43,7 @@ class TempliDatasetReader(DatasetReader):
             "tokens": SingleIdTokenIndexer(namespace=None, feature_name="text_id")
         }
         self._table_token_indexers = self._question_token_indexers
+        self._training = training
         pass
 
     """
@@ -74,8 +75,9 @@ class TempliDatasetReader(DatasetReader):
         if self.sentences_logical_forms is None:
             with open(file_path, "r") as f:
                 data = json.load(f)
-                self.sentences_logical_forms = []
+                self.sentences_logical_forms = {}
                 for sentence, v in data["sentences"].items():
+                    self.sentences_logical_forms[sentence] = []
                     for main_var, answer in v.items():
                         # this is one data that is going to be tokenized and then converted to Instance
                         one_data = {
@@ -86,11 +88,46 @@ class TempliDatasetReader(DatasetReader):
                             "logical_forms": answer["logical_forms"],
                             "knowledge_graph": data["knowledge_graph"],
                         }
-                        self.sentences_logical_forms.append(one_data)
-        return filter(
-            None.__ne__,
-            map(lambda x: self.text_to_instance(x), self.sentences_logical_forms),
-        )
+                        self.sentences_logical_forms[sentence].append(one_data)
+
+        if self._training:
+            return filter(
+                None.__ne__,
+                map(
+                    lambda x: self.text_to_instance(x),
+                    sum(self.sentences_logical_forms.values(), []),
+                ),
+            )
+        else:
+            def merge_instances(instances):
+                instances = [i for i in instances if i]
+                if not instances: return None
+
+                # note that all instances for a data use the exactly same TemliLanguage instance. This
+                # saves the headache later when we execute the logical forms, as the id of intervalvars would
+                # be exactly the same. THIS IS NOT THE CASE DURING TRAINING
+                fields = instances[0].fields
+                
+                # TODO currently, seems like only question field and metadata field contains me_event-specific data
+                # Things may change in the future
+                # TODO variable length ListField would cause
+                # Assertion `idx_dim >= 0 && idx_dim < index_size && "index out of bounds"` failed.
+                # error. We pad them with to len==10 with last question instead (THIS IS NASTY FIX THIS)
+                list_of_questions = [i.fields['question'] for i in instances[:10]]
+                list_of_questions += [instances[-1].fields['question']]*(10-len(list_of_questions))
+                fields['question'] = ListField(list_of_questions)
+                list_of_metadata = [i.fields['metadata'] for i in instances[:10]]
+                list_of_metadata += [instances[-1].fields['metadata']]*(10-len(list_of_metadata))
+                fields['metadata'] = ListField(list_of_metadata)
+                return Instance(fields)
+
+            return filter(
+                None.__ne__,
+                map(
+                    lambda x: merge_instances([self.text_to_instance(i) for i in x]),
+                    self.sentences_logical_forms.values(),
+                ),
+            )
 
     """
     This function converts one data to an Instance (which contains Dict[str,Field])
@@ -114,7 +151,7 @@ class TempliDatasetReader(DatasetReader):
         doc_len = len(sentence_tokens)
         tokens = ["[CLS]"] + sentence_tokens + ["[SEP]"] + me_event_tokens + ["[SEP]"]
         segment_ids = [0] * (len(sentence_tokens) + 2) + [1] * (
-            len(me_event_tokens) + 1
+                len(me_event_tokens) + 1
         )
         input_ids = self._tokenizer.convert_tokens_to_ids(tokens)
         input_mask = [1] * len(input_ids)
@@ -217,7 +254,7 @@ class TempliDatasetReader(DatasetReader):
 
     def spaceless_rng_to_str(self, sentence: str, spacelspaceless_rng: str):
         range_tuple = tuple(map(lambda x: int(x), spacelspaceless_rng.split("_")))
-        return sentence.replace(" ", "")[range_tuple[0] : range_tuple[1]]
+        return sentence.replace(" ", "")[range_tuple[0]: range_tuple[1]]
 
     def _truncate_seq_pair(self, tokens_a, tokens_b, max_length):
         """Truncates a sequence pair in place to the maximum length."""

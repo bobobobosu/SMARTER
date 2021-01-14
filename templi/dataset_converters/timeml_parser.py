@@ -6,7 +6,7 @@ from spacy.lang.en import English
 from tqdm import tqdm
 
 
-def parser(news):
+def parser(news, return_only_sentences_anno=False):
     parsed = etree.XML(news)
     # print(etree.tostring(parsed, pretty_print=True))
     raw_text = str(parsed.xpath("string()"))
@@ -46,6 +46,9 @@ def parser(news):
         if cursor > sentences_idx[0]:
             cursor = cursor - sentences_idx.pop(0)
             sentence = sentences.pop(0)
+
+    if return_only_sentences_anno == True:
+        return sentences_anno
 
     # extract all relations
     events_list = parsed.findall("EVENT")
