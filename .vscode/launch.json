@@ -16,6 +16,7 @@
             "type": "python",
             "request": "launch",
             "program": "training/start_fresh.py",
+            "cwd": "${workspaceFolder}",
             "console": "integratedTerminal"
         },
         {
@@ -31,6 +32,7 @@
             "type": "python",
             "request": "launch",
             "program": "training/temli_train.py",
+            "cwd": "${workspaceFolder}",
             "console": "integratedTerminal"
         },
         {
@@ -38,6 +40,7 @@
             "type": "python",
             "request": "launch",
             "program": "training/temli_train.py",
+            "cwd": "${workspaceFolder}",
             "args": ["--recover"],
             "console": "integratedTerminal"
         },

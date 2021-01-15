@@ -16,9 +16,9 @@ sys.path.append(os.getcwd())  # add project root to path
 
 # Tunable Params
 cache_params = {
-    "LF_LEN": 1,
-    "MAX_LF_NUM": 1,
-    "DPD_THREADS": 6,  # doesn't affect outcome
+    "LF_LEN": 8,
+    "MAX_LF_NUM": 20000,
+    "DPD_THREADS": 12,  # doesn't affect outcome
     "KG_VERTICES": 5,
 }
 
@@ -52,6 +52,8 @@ else:
                 news = news.replace("<TEXT>", "")  # hack to make timeml-dense work
                 news = news.replace("</TEXT>", "")  # hack to make timeml-dense work
                 sentence_rels = {**sentence_rels, **parser(news)}
+            if len(sentence_rels) > 10:
+                break
         return sentence_rels
 
     def sentence_rels_to_temli_data(sentence_rels):
@@ -100,6 +102,23 @@ else:
     validation_data["sentences"] = sentence_rels_to_temli_data(
         folder_of_tml_to_sentence_rels(validation_data_path)
     )
+
+    # traing_data_path = "training/data/timebank_1_2/data/extra"
+    # traing_data["sentences"] = sentence_rels_to_temli_data(
+    #     folder_of_tml_to_sentence_rels(traing_data_path)
+    # )
+
+    # validation_data_path = "training/data/timebank_1_2/data/timeml"
+    # validation_data["sentences"] = sentence_rels_to_temli_data(
+    #     folder_of_tml_to_sentence_rels(validation_data_path)
+    # )
+
+    # balance uneven data
+    for k in list(validation_data["sentences"].keys())[200:]:
+        traing_data["sentences"][k] = validation_data["sentences"][k]
+        del validation_data["sentences"][k]
+
+
 
 
 # Writes to file

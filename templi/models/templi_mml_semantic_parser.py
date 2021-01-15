@@ -1,5 +1,5 @@
 from typing import Any, Dict, List
-
+import copy
 from overrides import overrides
 import torch
 
@@ -147,7 +147,7 @@ class TempliMmlSemanticParser(TempliSemanticParser):
                 each_kwargs = kwargs.copy()
                 each_kwargs["question"] = question
                 each_kwargs["metadata"] = [i[idx] for i in kwargs["metadata"]]
-                list_of_outputs.append(self.forward_train(*args, **each_kwargs))
+                list_of_outputs.append(copy.deepcopy(self.forward_train(*args, **each_kwargs)))
 
             batch_size = len(list_of_outputs[0]["answer"])
 

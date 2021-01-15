@@ -1,0 +1,40 @@
+
+class InterTimeInterval(object):
+    def __init__(self, time_interval: "TimeInterval") -> None:
+        self.time_interval = time_interval
+class TimeInterval_D(object):
+    def __init__(self, time_interval: "TimeInterval") -> None:
+        self.time_interval = time_interval
+class TimeInterval_F(object):
+    def __init__(self, time_interval: "TimeInterval") -> None:
+        self.time_interval = time_interval
+class TimeInterval_M(object):
+    def __init__(self, time_interval: "TimeInterval") -> None:
+        self.time_interval = time_interval
+class TimeInterval_O(object):
+    def __init__(self, time_interval: "TimeInterval") -> None:
+        self.time_interval = time_interval
+class TimeInterval_P(object):
+    def __init__(self, time_interval: "TimeInterval") -> None:
+        self.time_interval = time_interval
+class TimeInterval_S(object):
+    def __init__(self, time_interval: "TimeInterval") -> None:
+        self.time_interval = time_interval
+class TimeInterval_d(object):
+    def __init__(self, time_interval: "TimeInterval") -> None:
+        self.time_interval = time_interval
+class TimeInterval_f(object):
+    def __init__(self, time_interval: "TimeInterval") -> None:
+        self.time_interval = time_interval
+class TimeInterval_m(object):
+    def __init__(self, time_interval: "TimeInterval") -> None:
+        self.time_interval = time_interval
+class TimeInterval_o(object):
+    def __init__(self, time_interval: "TimeInterval") -> None:
+        self.time_interval = time_interval
+class TimeInterval_p(object):
+    def __init__(self, time_interval: "TimeInterval") -> None:
+        self.time_interval = time_interval
+class TimeInterval_s(object):
+    def __init__(self, time_interval: "TimeInterval") -> None:
+        self.time_interval = time_interval

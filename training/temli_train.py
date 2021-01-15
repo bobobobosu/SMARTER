@@ -70,7 +70,7 @@ p = Params(
             "num_epochs": 10000,
             "patience": 10,
             "cuda_device": 0,
-            "optimizer": {"type": "sgd", "lr": 0.01},
+            "optimizer": {"type": "adam", "lr": 0.01},
         },
     }
 )

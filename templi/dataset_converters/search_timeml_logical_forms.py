@@ -12,6 +12,14 @@ from multiprocessing import Pool
 def get_valid_logical_forms(sentences_rels: Dict[str, Dict[str, str]], params={}):
     params["DPD_THREADS"] = 4 if not "DPD_THREADS" in params else params["DPD_THREADS"]
 
+    # single threaded version for debug
+    # data = []
+    # for k, v in sentences_rels.items():
+    #     data += [logical_forms_of_sentence((k, v, params))]
+    # sentences_logical_forms = reduce(lambda a, b: {**a, **b}, data, {})
+    # return sentences_logical_forms
+
+    # multithreaded version
     with Pool(params["DPD_THREADS"]) as p:
         data = list(
             tqdm(
@@ -53,15 +61,6 @@ def logical_forms_of_sentence(sentence_rels: Tuple):
     except the main variable (the one logical form should evaluate to)
     """
     for main_var in temp_vars:
-        # generate possible logical forms
-        target_vars = temp_vars.difference({main_var})
-        context = TempliTimeContext(temp_vars=target_vars, knowledge_graph={}) # knowledge_graph not required to generate lf
-        world = TempliLanguage(context)
-        walker = ActionSpaceWalker(world, max_path_length=params["LF_LEN"])
-        all_logical_forms = walker.get_all_logical_forms(
-            max_num_logical_forms=params["MAX_LF_NUM"]
-        )
-
         # generate target relations
         target_relations = {}  # {target_var: rel}
         for rel in rels:
@@ -73,11 +72,31 @@ def logical_forms_of_sentence(sentence_rels: Tuple):
             if main_var == rel["rhs"] and converse(rel["rel"]):
                 target_relations[rel["lhs"]] = converse(rel["rel"])
 
-        # filter correct logical forms
-        correct_logical_forms = []
-        for logical_form in all_logical_forms:
-            if world.evaluate_logical_form(logical_form, target_relations):
-                correct_logical_forms.append(logical_form)
+        if target_relations:
+            # generate possible logical forms
+            target_vars = temp_vars.difference({main_var})
+            context = TempliTimeContext(temp_vars=target_vars, knowledge_graph={}) # knowledge_graph not required to generate lf
+            world = TempliLanguage(context)
+
+            ub_lf, ub_len = upperbound_lf(main_var,target_relations)
+
+            all_logical_forms = [ub_lf]
+            walker = ActionSpaceWalker(world, max_path_length=params["LF_LEN"])
+            all_logical_forms += walker.get_all_logical_forms(
+                max_num_logical_forms=params["MAX_LF_NUM"]
+            )
+
+            # print(len(all_logical_forms))
+            # filter correct logical forms
+            correct_logical_forms = set()
+            for logical_form in all_logical_forms:
+                if world.evaluate_logical_form(logical_form, target_relations):
+                    correct_logical_forms.add(logical_form)
+        else:
+            # terminate early if no relations
+            correct_logical_forms = []
+        
+        correct_logical_forms = list(correct_logical_forms)
 
         # collect training data
         result[main_var] = {
@@ -85,3 +104,25 @@ def logical_forms_of_sentence(sentence_rels: Tuple):
             "logical_forms": correct_logical_forms,
         }
     return {sentence: result}
+
+def upperbound_lf(main_var,target_relations):
+    length = 0
+    each_rel = []
+    for k, v in target_relations.items():
+        if v == 'e':
+            each_rel += [f"(const_{k})"]
+        else:
+            each_rel += [f"(term_{v} (const_{k}))"]
+        length += 1
+
+    lf = ""
+    while each_rel:
+        rel = each_rel.pop()
+        if lf == "":
+            lf = rel
+        else:
+            lf = f"(func_intersection {rel} {lf})"
+        length += 1
+    lf = f"(reset {lf})" # reset to type TimeInterval
+    length += 1
+    return lf, length
