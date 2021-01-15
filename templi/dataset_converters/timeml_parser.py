@@ -6,11 +6,12 @@ from spacy.lang.en import English
 from tqdm import tqdm
 
 
-def parser(news, return_only_sentences_anno=False):
+def parser(news):
     parsed = etree.XML(news)
+    # hardcore for DCT
     # print(etree.tostring(parsed, pretty_print=True))
     raw_text = str(parsed.xpath("string()"))
-
+    # print(raw_text)
     # Extract sentences and its related annotations
     nlp = English()
     nlp.add_pipe(nlp.create_pipe("sentencizer"))
@@ -18,15 +19,24 @@ def parser(news, return_only_sentences_anno=False):
     elements = filter(
         lambda x: x[0] is not None,
         sum([[(e.text, e), (e.tail, None)]
-             for e in [parsed] + list(parsed)], []),
+             for e in [parsed[0],  parsed[1][0]] + list(parsed)[1:]], [])
+    )
+    cp_e = filter(
+        lambda x: x[0] is not None,
+        sum([[(e.text, e), (e.tail, None)]
+             for e in list(parsed)], []),
     )
 
+    cp_e2 = filter(
+        lambda x: x[0] is not None,
+        sum([[(e.text, e), (e.tail, None)]
+             for e in [parsed[0],  parsed[1][0]] + list(parsed)[1:]], [])
+    )
     # create a dictionary {sentence:list_of_annotations}
     sentences_anno = {}
     sentences_idx = []
     for sentence in sentences:
         sentences_idx += [len(sentence.replace(" ", ""))]
-
     # populate the dictionary
     sentence = sentences.pop(0)
     cursor = 0
@@ -41,14 +51,13 @@ def parser(news, return_only_sentences_anno=False):
             sentences_anno[sentence] = {}
         if not element[1] is None:
             sentences_anno[sentence][annotation_pos] = element[1]
+        # assert sentence.replace(' ', '')[annotation_pos[0]:annotation_pos[1]] == element[0].replace(' ', '')
 
         cursor += annotation_len
-        if cursor > sentences_idx[0]:
+        if cursor >= sentences_idx[0]:
             cursor = cursor - sentences_idx.pop(0)
-            sentence = sentences.pop(0)
-
-    if return_only_sentences_anno == True:
-        return sentences_anno
+            if not len(sentences) == 0:
+                sentence = sentences.pop(0)
 
     # extract all relations
     events_list = parsed.findall("EVENT")
@@ -56,13 +65,16 @@ def parser(news, return_only_sentences_anno=False):
 
     relations_in_text = sum([i["temporal_relation"] for i in event_time], [])
     events_in_sentences = {}  # {sentence:{eid:pos}
+    id_text = {}
     for k, v in sentences_anno.items():
         events_in_sentences[k] = {}
         for k1, v1 in v.items():
             if "eid" in v1.attrib:
                 events_in_sentences[k][v1.attrib["eid"]] = k1
+                id_text[v1.attrib["eid"]] = v1.text
             if "tid" in v1.attrib:
                 events_in_sentences[k][v1.attrib["tid"]] = k1
+                id_text[v1.attrib["tid"]] = v1.text
 
     relations_in_sentences = {}
     for k, v in events_in_sentences.items():
