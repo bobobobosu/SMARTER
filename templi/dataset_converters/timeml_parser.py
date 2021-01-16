@@ -7,7 +7,7 @@ from tqdm import tqdm
 from functools import reduce
 
 
-def parser(news):
+def parser(news, sentences_in_one_data = 1):
     parsed = etree.XML(news)
     # hardcore for DCT
     # print(etree.tostring(parsed, pretty_print=True))
@@ -16,10 +16,13 @@ def parser(news):
     # Extract sentences and its related annotations
     nlp = English()
     nlp.add_pipe(nlp.create_pipe("sentencizer"))
+
     sentences = [sent.string for sent in nlp(raw_text).sents]
+    # concat sentences for one data
+    sentences = [''.join(sentences[i:i+sentences_in_one_data]) for i in range(len(sentences))]
 
     # sentencizer shouldn't drop any characters
-    assert raw_text == "".join([i.string for i in nlp(raw_text).sents])
+    # assert raw_text == "".join([i.string for i in nlp(raw_text).sents])
 
     def recursive_tag_extractor(doc):
         return (
@@ -38,6 +41,10 @@ def parser(news):
     absolute_idx_of_tags = reduce(
         lambda x, y: (x[0] + [(y, x[1])], x[1] + len(y[0])), all_tags_with_text, ([], 0)
     )[0]
+    absolute_idx_of_tags = list(
+        filter(lambda x: x[0][1] is not None, absolute_idx_of_tags)
+    )
+
 
     # absolute_idx_of_sentences
     absolute_idx_of_sentences = reduce(
