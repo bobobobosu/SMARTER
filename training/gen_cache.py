@@ -52,8 +52,6 @@ else:
                 news = news.replace("<TEXT>", "")  # hack to make timeml-dense work
                 news = news.replace("</TEXT>", "")  # hack to make timeml-dense work
                 sentence_rels = {**sentence_rels, **parser(news)}
-            if len(sentence_rels) > 10:
-                break
         return sentence_rels
 
     def sentence_rels_to_temli_data(sentence_rels):
@@ -93,25 +91,25 @@ else:
     # ] = tables_to_knowledge_graph(knowledge_graph_data_path)
 
     # Generate sentences data
-    traing_data_path = "training/data/tbaq-2013-03"
-    traing_data["sentences"] = sentence_rels_to_temli_data(
-        folder_of_tml_to_sentence_rels(traing_data_path)
-    )
-
-    validation_data_path = "training/data/te3-platinumstandard"
-    validation_data["sentences"] = sentence_rels_to_temli_data(
-        folder_of_tml_to_sentence_rels(validation_data_path)
-    )
-
-    # traing_data_path = "training/data/timebank_1_2/data/extra"
+    # traing_data_path = "training/data/tbaq-2013-03"
     # traing_data["sentences"] = sentence_rels_to_temli_data(
     #     folder_of_tml_to_sentence_rels(traing_data_path)
     # )
 
-    # validation_data_path = "training/data/timebank_1_2/data/timeml"
+    # validation_data_path = "training/data/te3-platinumstandard"
     # validation_data["sentences"] = sentence_rels_to_temli_data(
     #     folder_of_tml_to_sentence_rels(validation_data_path)
     # )
+
+    traing_data_path = "training/data/timebank_1_2/data/extra"
+    traing_data["sentences"] = sentence_rels_to_temli_data(
+        folder_of_tml_to_sentence_rels(traing_data_path)
+    )
+
+    validation_data_path = "training/data/timebank_1_2/data/timeml"
+    validation_data["sentences"] = sentence_rels_to_temli_data(
+        folder_of_tml_to_sentence_rels(validation_data_path)
+    )
 
     # balance uneven data
     for k in list(validation_data["sentences"].keys())[200:]:
