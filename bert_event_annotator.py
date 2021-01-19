@@ -301,18 +301,6 @@ def run(train_dataloader, validation_dataloader, model):
             # (source: https://stackoverflow.com/questions/48001598/why-do-we-need-to-call-zero-grad-in-pytorch)
             model.zero_grad()
 
-            if epoch_i in epochs_bert_1st:
-                train_parts = ["bert", "1st-level"]
-            elif epoch_i in epochs_2nd:
-                train_parts = ["2nd-level"]
-            else:
-                train_parts = ["bert", "1st-level", "2nd-level"]
-
-            # Freeze some parts of the model as specified
-            model.bert.requires_grad_("bert" in train_parts)
-            model.classifier_1.requires_grad_("1st-level" in train_parts)
-            model.classifier_2.requires_grad_("2nd-level" in train_parts)
-
             # Perform a forward pass (evaluate the model on this training batch).
             # The documentation for this `model` function is here:
             # https://huggingface.co/transformers/v2.2.0/model_doc/bert.html#transformers.BertForSequenceClassification
@@ -580,7 +568,7 @@ def annotate_one_instance(model, tokenizer, sentence: str) -> List[Tuple[int, in
 
     # DEBUG
     # raw_annotated_tokens = [t for t, l in zip(tokens, labels_1) if l == 1]
-    # raw_annotated_ends = [t for t, l in zip(tokens, labels_2) if l == 1]
+    # raw_annotated_ends = [t for t, l in zip(tokens, labels_2) if l == 1 and t in raw_annotated_tokens]
     # print(sentence)
     # print('\t', raw_annotated_tokens)
     # print('\t', raw_annotated_ends)
@@ -594,17 +582,8 @@ if __name__ == "__main__":
     device = "cuda"
     learning_rate = 5e-5
     adamw_eps = 1e-8  # for 10 docs, acc/val loss: 0.83/0.22 for 1e-7; [0.95/0.21 for 1e-8]; 0.82/0.17 for 1e-9; 0.79/0.12 for 1e-10
-    # epochs = 2
-    # epochs_bert_1st = []
-    # epochs_2nd = []
-    # eps_tag = "".join(
-    #     [
-    #         "1" if i in epochs_bert_1st else "2" if i in epochs_2nd else "0"
-    #         for i in range(epochs)
-    #     ]
-    # )
-    # config_tag = "-bert-base-uncased-hier(torch)-eps_{}".format(eps_tag)
-    config_tag = '-bert-base-uncased-hier(torch)-eps_00'
+    epochs = 2
+    config_tag = "-bert-base-uncased-hier(torch)-eps_00"
 
     # Set the seed value all over the place to make this reproducible.
     seed_val = 42
@@ -640,11 +619,9 @@ if __name__ == "__main__":
 
     # Annotate
     sentence = "I didn't think this annotator would work on Jan 14, but it does today."
-    annotations = annotate_one_instance(
-        model, tokenizer, sentence
-    )
+    annotations = annotate_one_instance(model, tokenizer, sentence)
 
-    # Test annotations
+    # Visualize annotations
     sentence_no_spacing = sentence.replace(" ", "")
     annotated_events = [sentence_no_spacing[s:e] for s, e in annotations]
     print(annotated_events)
