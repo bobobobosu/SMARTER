@@ -1502,3 +1502,96 @@ class BertEventAttentive(PreTrainedBertModel):
         passage_attended = passage_encoded * attn_weights.unsqueeze(2)
 
         return passage_attended  # (16, 128, 768)
+
+# BERT for hierarchical event annotation
+class BertHierarchicalEventAnnotator(PreTrainedBertModel):
+    """BERT model for hierarchical event annotation.
+    The tokens are binary-classified once or twice:
+    * Is it an event token?
+        - Yes => Is it the last token of the event?
+            - Yes (e.g. (e.g. '17' in ['on', 'Jan', '17']))
+            - No (e.g. (e.g. 'Jan' in ['on', 'Jan', '17']))
+        - No (e.g. (e.g. 'on' in ['on', 'Jan', '17']))
+    """
+
+    def __init__(self, config, num_labels=2):
+        super(BertHierarchicalEventAnnotator, self).__init__(config)
+        self.bert = BertModel(config)
+        self.dropout = nn.Dropout(config.hidden_dropout_prob)
+        self.classifier_1 = nn.Linear(config.hidden_size, 2)
+        self.classifier_2 = nn.Linear(config.hidden_size, 2)
+        self.apply(self.init_bert_weights)
+
+    def forward(self, input_ids, token_type_ids=None, attention_mask=None, labels_1=None, labels_2=None, return_dict=True, second_level_loss=True):
+        sequence_output, _ = self.bert(
+            input_ids, token_type_ids, attention_mask, output_all_encoded_layers=False
+        )
+        sequence_output = self.dropout(sequence_output)
+
+        logits_1 = self.classifier_1(sequence_output)
+        logits_2 = self.classifier_2(sequence_output)
+
+        if labels_1 is not None:
+            loss_fct = CrossEntropyLoss()
+
+            # Loss from the 1st-level classification
+            active_loss = attention_mask.view(-1) == 1  # non-padding tokens
+            active_logits = logits_1.view(-1, 2)
+            active_labels = torch.where(
+                active_loss, labels_1.view(-1), torch.tensor(loss_fct.ignore_index).type_as(labels_1)
+            )
+            loss = loss_fct(active_logits, active_labels)
+
+            # Loss from the 2nd-level classification
+            if second_level_loss:
+                active_loss = labels_1.view(-1) == 1  # event tokens
+                active_logits = logits_2.view(-1, 2)
+                active_labels = torch.where(
+                    active_loss, labels_2.view(-1), torch.tensor(loss_fct.ignore_index).type_as(labels_2)
+                )
+                loss += loss_fct(active_logits, active_labels)
+
+            return loss, logits_1, logits_2
+        else:
+            return logits_1, logits_2
+
+
+# BERT for ternary event annotation
+class BertTernaryEventAnnotator(PreTrainedBertModel):
+    """BERT model for ternary event annotation:
+    (BertForTokenClassification with an interface similar to BertHierarchicalEventAnnotator)
+    Tokens are classified into three categories: 
+    1. not an event token (e.g. 'on' in ['on', 'Jan', '17'])
+    2. an event token, but not the last token of the event (e.g. 'Jan' in ['on', 'Jan', '17'])
+    3. the last token of the event (e.g. '17' in ['on', 'Jan', '17'])
+    """
+
+    def __init__(self, config, num_labels=3):
+        super(BertTernaryEventAnnotator, self).__init__(config)
+        self.num_labels = 3
+        self.bert = BertModel(config)
+        self.dropout = nn.Dropout(config.hidden_dropout_prob)
+        self.classifier = nn.Linear(config.hidden_size, self.num_labels)
+        self.apply(self.init_bert_weights)
+
+    def forward(self, input_ids, token_type_ids=None, attention_mask=None, labels_1=None, labels_2=None, return_dict=True, second_level_loss=True):
+        sequence_output, _ = self.bert(
+            input_ids, token_type_ids, attention_mask, output_all_encoded_layers=False
+        )
+        sequence_output = self.dropout(sequence_output)
+        logits = self.classifier(sequence_output)
+        logits_dummy = torch.zeros_like(logits)
+
+        if labels_1 is not None:
+            labels_3 = labels_1 + labels_2  # 0=non-var; 1=var-not-end; 2=var-end
+
+            loss_fct = CrossEntropyLoss()
+            active_loss = attention_mask.view(-1) == 1
+            active_logits = logits.view(-1, self.num_labels)
+            active_labels = torch.where(
+                active_loss, labels_3.view(-1), torch.tensor(loss_fct.ignore_index).type_as(labels_3)
+            )
+            loss = loss_fct(active_logits, active_labels)
+            return loss, logits, logits_dummy
+        else:
+            return logits, logits_dummy
