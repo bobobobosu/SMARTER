@@ -579,11 +579,11 @@ def annotate_one_instance(model, tokenizer, sentence: str) -> List[Tuple[int, in
     annotations = reduce_annotations(annotations, ends)
 
     # DEBUG
-    raw_annotated_tokens = [t for t, l in zip(tokens, labels_1) if l == 1]
-    raw_annotated_ends = [t for t, l in zip(tokens, labels_2) if l == 1]
-    print(sentence)
-    print('\t', raw_annotated_tokens)
-    print('\t', raw_annotated_ends)
+    # raw_annotated_tokens = [t for t, l in zip(tokens, labels_1) if l == 1]
+    # raw_annotated_ends = [t for t, l in zip(tokens, labels_2) if l == 1]
+    # print(sentence)
+    # print('\t', raw_annotated_tokens)
+    # print('\t', raw_annotated_ends)
 
     return annotations
 
@@ -594,16 +594,17 @@ if __name__ == "__main__":
     device = "cuda"
     learning_rate = 5e-5
     adamw_eps = 1e-8  # for 10 docs, acc/val loss: 0.83/0.22 for 1e-7; [0.95/0.21 for 1e-8]; 0.82/0.17 for 1e-9; 0.79/0.12 for 1e-10
-    epochs = 4
-    epochs_bert_1st = []
-    epochs_2nd = [2, 3]
-    eps_tag = "".join(
-        [
-            "1" if i in epochs_bert_1st else "2" if i in epochs_2nd else "0"
-            for i in range(epochs)
-        ]
-    )
-    config_tag = "-bert-base-uncased-hier(torch)-eps_{}".format(eps_tag)
+    # epochs = 2
+    # epochs_bert_1st = []
+    # epochs_2nd = []
+    # eps_tag = "".join(
+    #     [
+    #         "1" if i in epochs_bert_1st else "2" if i in epochs_2nd else "0"
+    #         for i in range(epochs)
+    #     ]
+    # )
+    # config_tag = "-bert-base-uncased-hier(torch)-eps_{}".format(eps_tag)
+    config_tag = '-bert-base-uncased-hier(torch)-eps_00'
 
     # Set the seed value all over the place to make this reproducible.
     seed_val = 42
@@ -617,25 +618,25 @@ if __name__ == "__main__":
     tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
     # Load finetuning data
-    sentences_anno = load_sentence_anno(data_dir, data_paths, small_subset_size=-1)
-    train_dataloader, validation_dataloader = make_dataloaders(
-        tokenizer, sentences_anno
-    )
-    # Load testing data
-    # sentences_anno = load_sentence_anno(data_dir, data_paths, small_subset_size=1)
-    # test_dataloader = make_dataloaders(
-    #     tokenizer, sentences_anno, one_batch_for_test=True
+    # sentences_anno = load_sentence_anno(data_dir, data_paths, small_subset_size=-1)
+    # train_dataloader, validation_dataloader = make_dataloaders(
+    #     tokenizer, sentences_anno
     # )
+    # Load testing data
+    sentences_anno = load_sentence_anno(data_dir, data_paths, small_subset_size=1)
+    test_dataloader = make_dataloaders(
+        tokenizer, sentences_anno, one_batch_for_test=True
+    )
 
     print("\n" + "#" * 20 + " " + config_tag + " " + "#" * 20)
 
     # Load model
-    model = BertHierarchicalEventAnnotator.from_pretrained("bert-base-uncased")
-    # model = torch.load(os.path.join(model_out_dir, "model.pt"))
+    # model = BertHierarchicalEventAnnotator.from_pretrained("bert-base-uncased")
+    model = torch.load(os.path.join(model_out_dir, "model.pt"))
 
     # Finetune
-    training_stats = run(train_dataloader, validation_dataloader, model)
-    save_model(model, model_out_dir, training_stats)
+    # training_stats = run(train_dataloader, validation_dataloader, model)
+    # save_model(model, model_out_dir, training_stats)
 
     # Annotate
     sentence = "I didn't think this annotator would work on Jan 14, but it does today."
