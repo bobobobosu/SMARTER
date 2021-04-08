@@ -44,5 +44,14 @@
             "args": ["--recover"],
             "console": "integratedTerminal"
         },
+        {
+            "name": "run-temli",
+            "type": "python",
+            "request": "launch",
+            "program": "running/run_temli.py",
+            "cwd": "${workspaceFolder}",
+            "args": ["--recover"],
+            "console": "integratedTerminal"
+        },
     ]
 }
