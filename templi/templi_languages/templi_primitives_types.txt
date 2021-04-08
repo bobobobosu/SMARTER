@@ -23,6 +23,9 @@ class TimeInterval_S(object):
 class TimeInterval_d(object):
     def __init__(self, time_interval: "TimeInterval") -> None:
         self.time_interval = time_interval
+class TimeInterval_e(object):
+    def __init__(self, time_interval: "TimeInterval") -> None:
+        self.time_interval = time_interval
 class TimeInterval_f(object):
     def __init__(self, time_interval: "TimeInterval") -> None:
         self.time_interval = time_interval

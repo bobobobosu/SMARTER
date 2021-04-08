@@ -108,6 +108,7 @@ class TempliSemanticParser(Model):
             self._dropout = lambda x: x
         self._rule_namespace = rule_namespace
         self._denotation_accuracy = Average()
+        self._denotation_precision = Average()
         self._action_sequence_accuracy = Average()
         self._has_logical_form = Average()
         self._holistic_denotation_accuracy = Average()
@@ -621,6 +622,7 @@ class TempliSemanticParser(Model):
         return {
             "lf_retrieval_acc": self._action_sequence_accuracy.get_metric(reset),
             "denotation_acc": self._denotation_accuracy.get_metric(reset),
+            "denotation_precision": self._denotation_precision.get_metric(reset),
             "holistic_denotation_acc": self._holistic_denotation_accuracy.get_metric(reset),
             "lf_percent": self._has_logical_form.get_metric(reset),
         }
@@ -787,11 +789,11 @@ class TempliSemanticParser(Model):
                     except ParsingError:
                         logical_form = "Error producing logical form"
                     if metadata[i]["target_relations"] is not None:
-                        denotation_correct = world[i].evaluate_logical_form(
+                        denotation_correct = world[i].evaluate_logical_form_partial_match(
                             logical_form, metadata[i]["target_relations"]
                         )
                     else:
-                        denotation_correct = False
+                        denotation_correct = 0
                     if not found_denotation:
                         try:
                             denotation = world[i].execute(logical_form)
@@ -806,9 +808,8 @@ class TempliSemanticParser(Model):
                             else:
                                 self._has_logical_form(0.0)
                             if "target_relations" in metadata[i]:
-                                self._denotation_accuracy(
-                                    1.0 if denotation_correct else 0.0
-                                )
+                                total_rel = len(metadata[i]["target_relations"])
+                                self._denotation_accuracy(denotation_correct/total_rel if total_rel != 0 else 1)
                             outputs["best_action_sequence"].append(action_strings)
                     outputs["logical_form"][-1].append(logical_form)
                 if not found_denotation:

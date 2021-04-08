@@ -1,7 +1,11 @@
 from collections import defaultdict
-from typing import List, Dict, Set
+from typing import List, Dict, Set, Any
 import logging
-
+from pathlib import Path
+import json
+import os
+import gc
+from functools import reduce
 from allennlp.common.util import START_SYMBOL
 
 from allennlp_semparse.domain_languages.domain_language import DomainLanguage
@@ -26,9 +30,10 @@ class ActionSpaceWalker:
         length will be discarded.
     """
 
-    def __init__(self, world: DomainLanguage, max_path_length: int) -> None:
+    def __init__(self, world: DomainLanguage, params: Dict[str, Any]) -> None:
         self._world = world
-        self._max_path_length = max_path_length
+        self._params = params
+        self._max_path_length = self._params["LF_LEN"]
         self._completed_paths: List[List[str]] = None
         self._terminal_path_index: Dict[str, Set[int]] = defaultdict(set)
         self._length_sorted_paths: List[List[str]] = None
@@ -146,7 +151,9 @@ class ActionSpaceWalker:
         filtered_path_indices: List[Set[int]] = []
         for agenda_item, path_indices in zip(agenda, agenda_path_indices):
             if not path_indices:
-                logger.warning(f"{agenda_item} is not in any of the paths found! Ignoring it.")
+                logger.warning(
+                    f"{agenda_item} is not in any of the paths found! Ignoring it."
+                )
                 continue
             filtered_path_indices.append(path_indices)
 
@@ -174,10 +181,14 @@ class ActionSpaceWalker:
                 if num_items == len(filtered_path_indices):
                     indices_to_return.append(index)
             # Sort all the paths by length
-            paths = sorted([self._completed_paths[index] for index in indices_to_return], key=len)
+            paths = sorted(
+                [self._completed_paths[index] for index in indices_to_return], key=len
+            )
         if max_num_logical_forms is not None:
             paths = paths[:max_num_logical_forms]
-        logical_forms = [self._world.action_sequence_to_logical_form(path) for path in paths]
+        logical_forms = [
+            self._world.action_sequence_to_logical_form(path) for path in paths
+        ]
         return logical_forms
 
     def get_all_logical_forms(self, max_num_logical_forms: int = None) -> List[str]:
@@ -188,5 +199,128 @@ class ActionSpaceWalker:
             if self._length_sorted_paths is None:
                 self._length_sorted_paths = sorted(self._completed_paths, key=len)
             paths = self._length_sorted_paths[:max_num_logical_forms]
-        logical_forms = [self._world.action_sequence_to_logical_form(path) for path in paths]
+        logical_forms = [
+            self._world.action_sequence_to_logical_form(path) for path in paths
+        ]
         return logical_forms
+
+    """
+    Modified by Temli
+
+    """
+
+    def _walk_iterator(self) -> None:
+        """
+        Walk over action space to collect completed paths of at most ``self._max_path_length`` steps.
+        """
+        file_cnter = 0
+        actions = self._world.get_nonterminal_productions()
+        start_productions = actions[START_SYMBOL]
+        # Buffer of NTs to expand, previous actions
+        incomplete_paths = [
+            ([start_production.split(" -> ")[-1]], [start_production])
+            for start_production in start_productions
+        ]
+        self._completed_paths = []
+        lf_counter = 0
+        # Overview: We keep track of the buffer of non-terminals to expand, and the action history
+        # for each incomplete path. At every iteration in the while loop below, we iterate over all
+        # incomplete paths, expand one non-terminal from the buffer in a depth-first fashion, get
+        # all possible next actions triggered by that non-terminal and add to the paths. Then, we
+        # check the expanded paths, to see if they are 1) complete, in which case they are
+        # added to completed_paths, 2) longer than max_path_length, in which case they are
+        # discarded, or 3) neither, in which case they are used to form the incomplete_paths for the
+        # next iteration of this while loop.
+        # While the non-terminal expansion is done in a depth-first fashion, note that the search over
+        # the action space itself is breadth-first.
+        while incomplete_paths:
+            next_paths = []
+            for nonterminal_buffer, history in incomplete_paths:
+                # Taking the last non-terminal added to the buffer. We're going depth-first.
+                nonterminal = nonterminal_buffer.pop()
+                next_actions = []
+                if nonterminal not in actions:
+                    # This happens when the nonterminal corresponds to a type that does not exist in
+                    # the context. For example, in the variable free variant of the WikiTables
+                    # world, there are nonterminals for specific column types (like date). Say we
+                    # produced a path containing "filter_date_greater" already, and we do not have
+                    # an columns of type "date", then this condition would be triggered. We should
+                    # just discard those paths.
+                    continue
+                else:
+                    next_actions.extend(actions[nonterminal])
+                # Iterating over all possible next actions.
+                for action in next_actions:
+                    new_history = history + [action]
+                    new_nonterminal_buffer = nonterminal_buffer[:]
+                    # Since we expand the last action added to the buffer, the left child should be
+                    # added after the right child.
+                    for right_side_part in reversed(self._get_right_side_parts(action)):
+                        if self._world.is_nonterminal(right_side_part):
+                            new_nonterminal_buffer.append(right_side_part)
+                    next_paths.append((new_nonterminal_buffer, new_history))
+            incomplete_paths = []
+            for nonterminal_buffer, path in next_paths:
+                # An empty buffer means that we've completed this path.
+                if not nonterminal_buffer:
+                    # Indexing completed paths by the nonterminals they contain.
+                    # next_path_index = len(self._completed_paths)
+                    # for action in path:
+                    #     for value in self._get_right_side_parts(action):
+                    #         if not self._world.is_nonterminal(value):
+                    #             self._terminal_path_index[action].add(next_path_index)
+                    # self._completed_paths.append(path)
+                    lf_counter += 1
+                    if lf_counter > self._params["MAX_LF_NUM"]:
+                        return
+                    yield path
+                # We're adding to incomplete_paths for the next iteration, only those paths that are
+                # shorter than the max_path_length. The remaining paths will be discarded.
+                elif len(path) <= self._max_path_length:
+                    incomplete_paths.append((nonterminal_buffer, path))
+
+                    # serielize to disk if the buffer is too large
+                    cache_len = self._params["LF_RUNTIME_CACHE_LEN"]
+                    if len(incomplete_paths) > cache_len:
+                        file_cnter += 1
+                        Path("training/cache").mkdir(parents=True, exist_ok=True)
+                        file_path = self._params["LF_RUNTIME_CACHE_PATH"]
+                        file_path = f"{file_path}.{str(file_cnter)}"
+                        json.dump(
+                            incomplete_paths[: cache_len // 2],
+                            open(file_path, "w"),
+                            indent=4,
+                        )
+                        new_incomplete_paths = incomplete_paths[cache_len // 2 :]
+                        del incomplete_paths
+                        gc.collect()
+                        incomplete_paths = new_incomplete_paths
+            # try to deserielize from disk if the buffer is empty
+            if not incomplete_paths and file_cnter > 0:
+                file_path = self._params["LF_RUNTIME_CACHE_PATH"]
+                file_path = f"{file_path}.{str(file_cnter)}"
+                with open(file_path) as f:
+                    incomplete_paths = json.load(f)
+                os.remove(file_path)
+                file_cnter -= 1
+
+    def iterate_all_action_sequences(
+        self, max_num_logical_forms: int = None
+    ) -> List[str]:
+        return self._walk_iterator()
+
+    def iterate_all_logical_forms(self) -> List[str]:
+        return map(
+            lambda x: self._world.action_sequence_to_logical_form(x),
+            self._walk_iterator(),
+        )
+
+    def get_all_action_sequences(self, max_num_logical_forms: int = None) -> List[str]:
+        if self._completed_paths is None:
+            self._walk()
+        paths = self._completed_paths
+        if max_num_logical_forms is not None:
+            if self._length_sorted_paths is None:
+                self._length_sorted_paths = sorted(self._completed_paths, key=len)
+            paths = self._length_sorted_paths[:max_num_logical_forms]
+        return paths

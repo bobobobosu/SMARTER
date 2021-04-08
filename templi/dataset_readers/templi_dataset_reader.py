@@ -33,7 +33,7 @@ max_seq_length = (
 
 @DatasetReader.register("templi")
 class TempliDatasetReader(DatasetReader):
-    def __init__(self, training, bert_model, do_lower_case, lazy=False) -> None:
+    def __init__(self, training, bert_model, do_lower_case, lazy=False, predicting=False) -> None:
         super().__init__(lazy=lazy)
         self.sentences_logical_forms = None  # type: Dict[str:Dict[str:Any]]
         self._tokenizer = TemliTokenizer(bert_model, do_lower_case=do_lower_case)
@@ -44,6 +44,7 @@ class TempliDatasetReader(DatasetReader):
         }
         self._table_token_indexers = self._question_token_indexers
         self._training = training
+        self._predicting= predicting
         pass
 
     """
@@ -226,10 +227,15 @@ class TempliDatasetReader(DatasetReader):
                 # produce the logical forms.  We should skip this instance.  Note that this affects
                 # _dev_ and _test_ instances, too, so your metrics could be over-estimates on the
                 # full test data.
-                return None
-            target_action_sequences_field = ListField(action_sequence_fields)
+                if not self._predicting:
+                    return None
+                target_action_sequences_field = None
+            else:
+                target_action_sequences_field = ListField(action_sequence_fields)
         else:
-            return None
+            if not self._predicting:
+                return None
+            target_action_sequences_field = None
 
         # Metadata Field containes the original data (unmodified) plus information required
         # to run BertMultiwayAttention
@@ -243,8 +249,9 @@ class TempliDatasetReader(DatasetReader):
             "world": world_field,
             "actions": action_field,
             "metadata": metadata_field,
-            "target_action_sequences": target_action_sequences_field,
         }
+        if target_action_sequences_field:
+            fields["target_action_sequences"]= target_action_sequences_field
 
         return Instance(fields)
 
@@ -253,7 +260,7 @@ class TempliDatasetReader(DatasetReader):
     """
 
     def spaceless_rng_to_str(self, sentence: str, spacelspaceless_rng: str):
-        range_tuple = tuple(map(lambda x: int(x), spacelspaceless_rng.split("_")))
+        range_tuple = tuple(map(lambda x: int(x), spacelspaceless_rng[1:-1].split(":")))
         return sentence.replace(" ", "")[range_tuple[0]: range_tuple[1]]
 
     def _truncate_seq_pair(self, tokens_a, tokens_b, max_length):

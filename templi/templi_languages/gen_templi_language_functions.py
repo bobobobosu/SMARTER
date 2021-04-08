@@ -1,4 +1,5 @@
 import pprint
+from functools import reduce
 """
 This file is meant to run standalone in this folder
 This file generates all predicate for TemliLanguage
@@ -37,89 +38,84 @@ op_to_func = {
 }
 
 func_lines = []
-pred_lines = []
 type_lines = []
 valid_com = {}
+start_types = {"TimeInterval"}
 for r, row in enumerate(composition_table):
     valid_com[uci_rels[r]] = ""
     for c, col in enumerate(row):
         lhs = uci_rels[r]
         rhs = uci_rels[c]
-        if lhs == 'e' or rhs == 'e': # equals function has no function
-            continue
         cop = col
         if lhs != cop:
             valid_com[uci_rels[r]] += rhs
-            func_line = f"""
-    def func_{lhs}_{rhs}(self, lhs: TimeInterval_{rhs}) -> TimeInterval_{lhs}:
-        return self.{op_to_func[lhs]}(lhs)"""
-            pred_line = f"""
-        self.add_predicate("func_{lhs}_{rhs}", self.func_{lhs}_{rhs})"""
+
+            # type
             type_line = f"""
 class TimeInterval_{lhs}(object):
     def __init__(self, time_interval: "TimeInterval") -> None:
         self.time_interval = time_interval"""
-            pred_lines += [pred_line]
-            func_lines += [func_line]
             type_lines += [type_line]
+            start_types.add(f"TimeInterval_{lhs}")
 
-            # Support for start
+            # chain 1 op
             func_line = f"""
-    def start_{rhs}(self, lhs: TimeInterval_{rhs}) -> TimeInterval:
-        return self.{op_to_func[lhs]}(lhs)"""   
-            pred_line = f"""
-        self.add_predicate("start_{rhs}", self.start_{rhs})"""  
-            pred_lines += [pred_line]
-            func_lines += [func_line]     
-
-            # Support for terminal
-            func_line = f"""
-    def term_{lhs}(self, lhs: InterTimeInterval) -> TimeInterval_{lhs}:
-        return self.{op_to_func[lhs]}(lhs)"""   
-            pred_line = f"""
-        self.add_predicate("term_{lhs}", self.term_{lhs})"""  
-            pred_lines += [pred_line]
+    @predicate
+    def op1_{lhs}(self, lhs: TimeInterval) -> InterTimeInterval:
+        return self.{op_to_func[lhs]}(lhs)"""
             func_lines += [func_line]
+
+            # chain 2 ops
+            func_line = f"""
+    @predicate
+    def op2_start_{lhs}(self, lhs: TimeInterval) -> TimeInterval_{lhs}:
+        return self.{op_to_func[lhs]}(lhs)"""
+            func_lines += [func_line]
+
+            func_line = f"""
+    @predicate
+    def op2_end_{lhs}_{rhs}(self, lhs: TimeInterval_{rhs}) -> InterTimeInterval:
+        return self.{op_to_func[lhs]}(lhs)"""
+            func_lines += [func_line]
+
+            # chain >2 ops (reuse funcs above)
+            func_line = f"""
+            
+    @predicate
+    def func_{lhs}_{rhs}(self, lhs: TimeInterval_{rhs}) -> TimeInterval_{lhs}:
+        return self.{op_to_func[lhs]}(lhs)"""
+            func_lines += [func_line]
+
 
 ## Intersection
-pred_line = f"""
-        self.add_predicate("func_intersection", self.func_intersection)"""  
-func_line = f"""
-    def func_intersection(self, lhs: TimeInterval, rhs: TimeInterval) -> InterTimeInterval:
-        return self.intersection(lhs, rhs)"""
-pred_lines += [pred_line]
-func_lines += [func_line]
+func_line = (
+    lambda x: f"""
+    @predicate
+    def func_intersection_{x}(self {(''.join([f", arg{i}: InterTimeInterval" for i in range(x)]))}) -> TimeInterval:
+        return {reduce(lambda acc, it: f"self.intersection(arg{it}, {acc})" ,range(2,x),"self.intersection(arg0, arg1)")}"""
+)
+func_lines += [func_line(i) for i in range(2,4)]
 
 ## Union
-pred_line = f"""
-        self.add_predicate("func_union", self.func_union)"""  
-func_line = f"""
-    def func_union(self, lhs: TimeInterval, rhs: TimeInterval) -> InterTimeInterval:
-        return self.union(lhs, rhs)"""
-pred_lines += [pred_line]
-func_lines += [func_line]  
-
-## Reset to TimeInterval
-pred_line = f"""
-        self.add_predicate("reset", self.reset)"""  
-func_line = f"""
-    def reset(self, lhs: InterTimeInterval) -> TimeInterval:
-        return lhs"""
-pred_lines += [pred_line]
-func_lines += [func_line]  
+func_line = (
+    lambda x: f"""
+    @predicate
+    def func_union_{x}(self {(''.join([f", arg{i}: InterTimeInterval" for i in range(x)]))}) -> TimeInterval:
+        return {reduce(lambda acc, it: f"self.union(arg{it}, {acc})" ,range(2,x),"self.union(arg0, arg1)")}"""
+)
+func_lines += [func_line(i) for i in range(2,4)]
 
 ## Intermediate type
 type_line = f"""
 class InterTimeInterval(object):
     def __init__(self, time_interval: "TimeInterval") -> None:
         self.time_interval = time_interval"""
-type_lines += [type_line]     
+type_lines += [type_line]
 
-with open("templi/templi_languages/templi_language_predicates.txt", "w") as text_file:
-    print(''.join(sorted(list(set(pred_lines)))), file=text_file)
 with open("templi/templi_languages/templi_language_functions.txt", "w") as text_file:
-    print(''.join(sorted(list(set(func_lines)))), file=text_file)
+    print("".join(sorted(list(set(func_lines)))), file=text_file)
 with open("templi/templi_languages/templi_primitives_types.txt", "w") as text_file:
-    print(''.join(sorted(list(set(type_lines)))), file=text_file)
-
+    print("".join(sorted(list(set(type_lines)))), file=text_file)
+with open("templi/templi_languages/start_types.txt", "w") as text_file:
+    print(",".join(sorted(list(set(start_types)))), file=text_file)
 pprint.pprint(valid_com)

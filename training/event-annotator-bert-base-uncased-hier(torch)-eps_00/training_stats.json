@@ -1,0 +1,24 @@
+[
+    {
+        "epoch": 1,
+        "Training Loss": 0.2870424310269865,
+        "Valid. Loss": 0.17043371413435254,
+        "Valid. Accur. 1": 0.9483194859108804,
+        "Valid. F1 Scr 1": 0.8683177526109641,
+        "Valid. Accur. 2": 0.9910380992265105,
+        "Valid. F1 Scr 2": 0.9901886040757294,
+        "Training Time": "0:02:17",
+        "Validation Time": "0:00:04"
+    },
+    {
+        "epoch": 2,
+        "Training Loss": 0.12554549350490654,
+        "Valid. Loss": 0.16589164244277135,
+        "Valid. Accur. 1": 0.952123708565964,
+        "Valid. F1 Scr 1": 0.8774817240582747,
+        "Valid. Accur. 2": 0.9901525447343987,
+        "Valid. F1 Scr 2": 0.9889923745807306,
+        "Training Time": "0:02:17",
+        "Validation Time": "0:00:04"
+    }
+]

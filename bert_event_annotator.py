@@ -576,10 +576,10 @@ def annotate_one_instance(model, tokenizer, sentence: str) -> List[Tuple[int, in
     return annotations
 
 
+device = "cuda"
 if __name__ == "__main__":
     max_seq_len = 180  # anything longer are truncated  (180 => 0.07% truncated)
     batch_size = 8  # 16 => CUDA out of memory
-    device = "cuda"
     learning_rate = 5e-5
     adamw_eps = 1e-8  # for 10 docs, acc/val loss: 0.83/0.22 for 1e-7; [0.95/0.21 for 1e-8]; 0.82/0.17 for 1e-9; 0.79/0.12 for 1e-10
     epochs = 2
@@ -588,10 +588,10 @@ if __name__ == "__main__":
     # Set the seed value all over the place to make this reproducible.
     seed_val = 42
 
-    data_dir = "/mnt/AAI_Project/_Dataset/timebank_1_2/data"
+    data_dir = "training/data/timebank_1_2/data"
     data_paths = ["timeml", "extra"]
     model_out_dir = (
-        "/mnt/AAI_Project/_Archive/try/temli_1.0/training/event-annotator" + config_tag
+        "training/event-annotator" + config_tag
     )
 
     tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
@@ -618,7 +618,8 @@ if __name__ == "__main__":
     # save_model(model, model_out_dir, training_stats)
 
     # Annotate
-    sentence = "I didn't think this annotator would work on Jan 14, but it does today."
+    # sentence = "I didn't think this annotator would work on Jan 14, but it does today."
+    sentence = "Har-Shefi said she heard Amir talk about killing Rabin but didnot tell the police because she did not believe he was serious."
     annotations = annotate_one_instance(model, tokenizer, sentence)
 
     # Visualize annotations

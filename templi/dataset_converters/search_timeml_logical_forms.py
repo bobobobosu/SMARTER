@@ -3,18 +3,25 @@ from tqdm import tqdm
 from templi.templi_languages.allen_algebra import converse, timeml_to_uci
 from typing import Dict, Tuple
 from templi.templi_languages.templi_language import TempliLanguage, TempliTimeContext
-
+from templi.dataset_converters.gen_logical_form_templates import LogicalFormTemplates
 from allennlp_semparse.common.action_space_walker import ActionSpaceWalker
 from functools import reduce
-from multiprocessing import Pool
+import copy
+from multiprocessing import Pool, Process, Manager
+import os
+from pathlib import Path
 
-
-def get_valid_logical_forms(sentences_rels: Dict[str, Dict[str, str]], params={}):
+template = None
+def get_valid_logical_forms(
+    sentences_rels: Dict[str, Dict[str, str]], logical_form_templates=None, params={}
+):
     params["DPD_THREADS"] = 4 if not "DPD_THREADS" in params else params["DPD_THREADS"]
+    global template
+    template = LogicalFormTemplates(params=params)
 
     # single threaded version for debug
     # data = []
-    # for k, v in sentences_rels.items():
+    # for k, v in tqdm(sentences_rels.items()):
     #     data += [logical_forms_of_sentence((k, v, params))]
     # sentences_logical_forms = reduce(lambda a, b: {**a, **b}, data, {})
     # return sentences_logical_forms
@@ -39,6 +46,7 @@ def logical_forms_of_sentence(sentence_rels: Tuple):
     sentence = sentence_rels[0]
     rels = sentence_rels[1]
     params = sentence_rels[2]
+    global template
     params["LF_LEN"] = 8 if not "LF_LEN" in params else params["LF_LEN"]
     params["MAX_LF_NUM"] = 5000 if not "MAX_LF_NUM" in params else params["MAX_LF_NUM"]
 
@@ -48,7 +56,7 @@ def logical_forms_of_sentence(sentence_rels: Tuple):
     # convert pos to str, timeml to uci
     for idx, rel in enumerate(rels):
         for pos_key in {"lhs", "rhs"}:
-            rels[idx][pos_key] = f"{rel[pos_key][0]}_{rel[pos_key][1]}"
+            rels[idx][pos_key] = f"[{rel[pos_key][0]}:{rel[pos_key][1]}]"
         rels[idx]["rel"] = timeml_to_uci(rels[idx]["rel"])
 
     # populate temp_vars
@@ -72,57 +80,99 @@ def logical_forms_of_sentence(sentence_rels: Tuple):
             if main_var == rel["rhs"] and converse(rel["rel"]):
                 target_relations[rel["lhs"]] = converse(rel["rel"])
 
-        if target_relations:
-            # generate possible logical forms
-            target_vars = temp_vars.difference({main_var})
-            context = TempliTimeContext(temp_vars=target_vars, knowledge_graph={}) # knowledge_graph not required to generate lf
-            world = TempliLanguage(context)
+        target_vars = temp_vars.difference({main_var})
+        context = TempliTimeContext(
+            temp_vars=target_vars, knowledge_graph={}
+        )  # knowledge_graph not required to generate lf
+        world = TempliLanguage(context)
 
-            ub_lf, ub_len = upperbound_lf(main_var,target_relations)
 
-            all_logical_forms = [ub_lf]
-            walker = ActionSpaceWalker(world, max_path_length=params["LF_LEN"])
-            all_logical_forms += walker.get_all_logical_forms(
-                max_num_logical_forms=params["MAX_LF_NUM"]
-            )
+        all_logical_forms = []
+        # hard coded lf that is always valid
+        ub_lf, ub_len = upperbound_lf(main_var, target_relations)
+        if ub_lf:
+            all_logical_forms += [ub_lf]
 
-            # print(len(all_logical_forms))
+        if len(target_relations) > 2:
+            rrr = 8
+
+        hard_coded_lf_len = {
+            1: 6,
+            2: 9,
+            3: 11
+        }
+        # params["LF_LEN"] = hard_coded_lf_len[len(target_relations)] if len(target_relations) in hard_coded_lf_len else 1
+
+        if len(target_relations) == 1:
+            Path("training/cache/memo").mkdir(parents=True, exist_ok=True)
+
+            tempvar_idx = {k: f"${i}$" for i, k in enumerate(list(target_vars))}
+            fingerprint = copy.deepcopy(target_relations)
+            fingerprint = {k: fingerprint[k] if k in  fingerprint else '' for k in target_vars}
+            fingerprint = {tempvar_idx[k]: v for k, v in fingerprint.items()}
+            fingerprint = sorted([(k, v) for k, v in fingerprint.items()], key=lambda x:x[0])
+
+            filepath = f"training/cache/memo/{str(fingerprint)}.json"
+            if not os.path.isfile(filepath):
+                walker = ActionSpaceWalker(world, params=params)
+                all_logical_forms += [i for i in walker.iterate_all_logical_forms()]
+
+                # filter correct logical forms
+                correct_logical_forms = set()
+                for logical_form in all_logical_forms:
+                    action_sequence = world.logical_form_to_action_sequence(logical_form)
+                    if params["LF_PARTIAL_MATCH"]:
+                        if world.evaluate_logical_form_partial_match(logical_form, target_relations) > 0:
+                            correct_logical_forms.add(logical_form)
+                    else:
+                        if world.evaluate_logical_form(logical_form, target_relations):
+                            correct_logical_forms.add(logical_form)
+
+                # serialize template
+                template_logical_forms = copy.deepcopy(correct_logical_forms)
+                for k,v in tempvar_idx.items():
+                    template_logical_forms = [x.replace(k, v) for x in template_logical_forms]
+                json.dump(
+                    template_logical_forms,
+                    open(filepath, "w"),
+                    indent=4,
+                )
+            else:
+                # deserializa template
+                with open(filepath, "r") as data_file:
+                    correct_logical_forms = json.load(data_file)
+                for k,v in tempvar_idx.items():
+                    correct_logical_forms = [x.replace(v, k) for x in correct_logical_forms]
+            
+        else:
             # filter correct logical forms
             correct_logical_forms = set()
             for logical_form in all_logical_forms:
+                action_sequence = world.logical_form_to_action_sequence(logical_form)
                 if world.evaluate_logical_form(logical_form, target_relations):
                     correct_logical_forms.add(logical_form)
-        else:
-            # terminate early if no relations
-            correct_logical_forms = []
-        
-        correct_logical_forms = list(correct_logical_forms)
 
         # collect training data
         result[main_var] = {
             "target_relations": target_relations,
-            "logical_forms": correct_logical_forms,
+            "logical_forms": list(correct_logical_forms),
         }
     return {sentence: result}
 
-def upperbound_lf(main_var,target_relations):
+
+def upperbound_lf(main_var, target_relations):
     length = 0
     each_rel = []
     for k, v in target_relations.items():
-        if v == 'e':
-            each_rel += [f"(const_{k})"]
-        else:
-            each_rel += [f"(term_{v} (const_{k}))"]
-        length += 1
+        each_rel += [f"(op1_{v} const_{k})"]
+    if len(each_rel) == 0:
+        return None, None
+    if len(each_rel) == 1:
+        return each_rel[0], 4
 
-    lf = ""
-    while each_rel:
-        rel = each_rel.pop()
-        if lf == "":
-            lf = rel
-        else:
-            lf = f"(func_intersection {rel} {lf})"
-        length += 1
-    lf = f"(reset {lf})" # reset to type TimeInterval
-    length += 1
+    # TODO increase intersection & union args in gen_templi_language_functions to enable this
+    each_rel = each_rel[:3]
+
+    lf = f"(func_intersection_{len(each_rel)} {' '.join(each_rel)})"
+    length = len(each_rel)*3
     return lf, length

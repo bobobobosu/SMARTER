@@ -154,6 +154,7 @@ class TempliMmlSemanticParser(TempliSemanticParser):
             # calculate holistic denotation accuracy
             # we need logical forms for each me_event and all target_rels
             final_output = list_of_outputs[0]
+            final_output["holistic_denotation"] = []
             for idx in range(batch_size):  # batch_size
                 world = kwargs["world"][idx]
                 list_of_main_var = [
@@ -166,10 +167,11 @@ class TempliMmlSemanticParser(TempliSemanticParser):
                     output["metadata"][idx]["target_relations"]
                     for output in list_of_outputs
                 ]
-                holistic_denotation_acc = world.evaluate_logical_form_holistically(
+                holistic_denotation_acc, holistic_denotation = world.evaluate_logical_form_holistically(
                     dict(zip(list_of_main_var, list_of_denotation)),
                     dict(zip(list_of_main_var, list_of_target_rels)),
                 )
+                final_output["holistic_denotation"].append(holistic_denotation)
                 self._holistic_denotation_accuracy(holistic_denotation_acc)
             return final_output  # (batch_size,...)
 
@@ -321,7 +323,7 @@ class TempliMmlSemanticParser(TempliSemanticParser):
             return outputs
 
     def spaceless_rng_to_str(self, sentence: str, spacelspaceless_rng: str):
-        range_tuple = tuple(map(lambda x: int(x), spacelspaceless_rng.split("_")))
+        range_tuple = tuple(map(lambda x: int(x), spacelspaceless_rng[1:-1].split(":")))
         return sentence.replace(" ", "")[range_tuple[0] : range_tuple[1]]
 
 

@@ -1,487 +1,973 @@
 
+            
+    @predicate
     def func_D_M(self, lhs: TimeInterval_M) -> TimeInterval_D:
         return self.contains(lhs)
+            
+    @predicate
     def func_D_O(self, lhs: TimeInterval_O) -> TimeInterval_D:
         return self.contains(lhs)
+            
+    @predicate
     def func_D_P(self, lhs: TimeInterval_P) -> TimeInterval_D:
         return self.contains(lhs)
+            
+    @predicate
     def func_D_d(self, lhs: TimeInterval_d) -> TimeInterval_D:
         return self.contains(lhs)
+            
+    @predicate
     def func_D_f(self, lhs: TimeInterval_f) -> TimeInterval_D:
         return self.contains(lhs)
+            
+    @predicate
     def func_D_m(self, lhs: TimeInterval_m) -> TimeInterval_D:
         return self.contains(lhs)
+            
+    @predicate
     def func_D_o(self, lhs: TimeInterval_o) -> TimeInterval_D:
         return self.contains(lhs)
+            
+    @predicate
     def func_D_p(self, lhs: TimeInterval_p) -> TimeInterval_D:
         return self.contains(lhs)
+            
+    @predicate
     def func_D_s(self, lhs: TimeInterval_s) -> TimeInterval_D:
         return self.contains(lhs)
+            
+    @predicate
     def func_F_D(self, lhs: TimeInterval_D) -> TimeInterval_F:
         return self.finished_by(lhs)
+            
+    @predicate
     def func_F_M(self, lhs: TimeInterval_M) -> TimeInterval_F:
         return self.finished_by(lhs)
+            
+    @predicate
     def func_F_O(self, lhs: TimeInterval_O) -> TimeInterval_F:
         return self.finished_by(lhs)
+            
+    @predicate
     def func_F_P(self, lhs: TimeInterval_P) -> TimeInterval_F:
         return self.finished_by(lhs)
+            
+    @predicate
     def func_F_S(self, lhs: TimeInterval_S) -> TimeInterval_F:
         return self.finished_by(lhs)
+            
+    @predicate
     def func_F_d(self, lhs: TimeInterval_d) -> TimeInterval_F:
         return self.finished_by(lhs)
+            
+    @predicate
     def func_F_f(self, lhs: TimeInterval_f) -> TimeInterval_F:
         return self.finished_by(lhs)
+            
+    @predicate
     def func_F_m(self, lhs: TimeInterval_m) -> TimeInterval_F:
         return self.finished_by(lhs)
+            
+    @predicate
     def func_F_o(self, lhs: TimeInterval_o) -> TimeInterval_F:
         return self.finished_by(lhs)
+            
+    @predicate
     def func_F_p(self, lhs: TimeInterval_p) -> TimeInterval_F:
         return self.finished_by(lhs)
+            
+    @predicate
     def func_F_s(self, lhs: TimeInterval_s) -> TimeInterval_F:
         return self.finished_by(lhs)
+            
+    @predicate
     def func_M_D(self, lhs: TimeInterval_D) -> TimeInterval_M:
         return self.met_by(lhs)
+            
+    @predicate
     def func_M_M(self, lhs: TimeInterval_M) -> TimeInterval_M:
         return self.met_by(lhs)
+            
+    @predicate
     def func_M_O(self, lhs: TimeInterval_O) -> TimeInterval_M:
         return self.met_by(lhs)
+            
+    @predicate
     def func_M_P(self, lhs: TimeInterval_P) -> TimeInterval_M:
         return self.met_by(lhs)
+            
+    @predicate
     def func_M_S(self, lhs: TimeInterval_S) -> TimeInterval_M:
         return self.met_by(lhs)
+            
+    @predicate
     def func_M_d(self, lhs: TimeInterval_d) -> TimeInterval_M:
         return self.met_by(lhs)
+            
+    @predicate
     def func_M_m(self, lhs: TimeInterval_m) -> TimeInterval_M:
         return self.met_by(lhs)
+            
+    @predicate
     def func_M_o(self, lhs: TimeInterval_o) -> TimeInterval_M:
         return self.met_by(lhs)
+            
+    @predicate
     def func_M_p(self, lhs: TimeInterval_p) -> TimeInterval_M:
         return self.met_by(lhs)
+            
+    @predicate
     def func_M_s(self, lhs: TimeInterval_s) -> TimeInterval_M:
         return self.met_by(lhs)
+            
+    @predicate
     def func_O_D(self, lhs: TimeInterval_D) -> TimeInterval_O:
         return self.overlapped_by(lhs)
+            
+    @predicate
     def func_O_F(self, lhs: TimeInterval_F) -> TimeInterval_O:
         return self.overlapped_by(lhs)
+            
+    @predicate
     def func_O_M(self, lhs: TimeInterval_M) -> TimeInterval_O:
         return self.overlapped_by(lhs)
+            
+    @predicate
     def func_O_O(self, lhs: TimeInterval_O) -> TimeInterval_O:
         return self.overlapped_by(lhs)
+            
+    @predicate
     def func_O_P(self, lhs: TimeInterval_P) -> TimeInterval_O:
         return self.overlapped_by(lhs)
+            
+    @predicate
     def func_O_S(self, lhs: TimeInterval_S) -> TimeInterval_O:
         return self.overlapped_by(lhs)
+            
+    @predicate
     def func_O_d(self, lhs: TimeInterval_d) -> TimeInterval_O:
         return self.overlapped_by(lhs)
+            
+    @predicate
     def func_O_m(self, lhs: TimeInterval_m) -> TimeInterval_O:
         return self.overlapped_by(lhs)
+            
+    @predicate
     def func_O_o(self, lhs: TimeInterval_o) -> TimeInterval_O:
         return self.overlapped_by(lhs)
+            
+    @predicate
     def func_O_p(self, lhs: TimeInterval_p) -> TimeInterval_O:
         return self.overlapped_by(lhs)
+            
+    @predicate
     def func_O_s(self, lhs: TimeInterval_s) -> TimeInterval_O:
         return self.overlapped_by(lhs)
+            
+    @predicate
     def func_P_d(self, lhs: TimeInterval_d) -> TimeInterval_P:
         return self.preceded_by(lhs)
+            
+    @predicate
     def func_P_m(self, lhs: TimeInterval_m) -> TimeInterval_P:
         return self.preceded_by(lhs)
+            
+    @predicate
     def func_P_o(self, lhs: TimeInterval_o) -> TimeInterval_P:
         return self.preceded_by(lhs)
+            
+    @predicate
     def func_P_p(self, lhs: TimeInterval_p) -> TimeInterval_P:
         return self.preceded_by(lhs)
+            
+    @predicate
     def func_P_s(self, lhs: TimeInterval_s) -> TimeInterval_P:
         return self.preceded_by(lhs)
+            
+    @predicate
     def func_S_D(self, lhs: TimeInterval_D) -> TimeInterval_S:
         return self.started_by(lhs)
+            
+    @predicate
     def func_S_F(self, lhs: TimeInterval_F) -> TimeInterval_S:
         return self.started_by(lhs)
+            
+    @predicate
     def func_S_M(self, lhs: TimeInterval_M) -> TimeInterval_S:
         return self.started_by(lhs)
+            
+    @predicate
     def func_S_O(self, lhs: TimeInterval_O) -> TimeInterval_S:
         return self.started_by(lhs)
+            
+    @predicate
     def func_S_P(self, lhs: TimeInterval_P) -> TimeInterval_S:
         return self.started_by(lhs)
+            
+    @predicate
     def func_S_d(self, lhs: TimeInterval_d) -> TimeInterval_S:
         return self.started_by(lhs)
+            
+    @predicate
     def func_S_f(self, lhs: TimeInterval_f) -> TimeInterval_S:
         return self.started_by(lhs)
+            
+    @predicate
     def func_S_m(self, lhs: TimeInterval_m) -> TimeInterval_S:
         return self.started_by(lhs)
+            
+    @predicate
     def func_S_o(self, lhs: TimeInterval_o) -> TimeInterval_S:
         return self.started_by(lhs)
+            
+    @predicate
     def func_S_p(self, lhs: TimeInterval_p) -> TimeInterval_S:
         return self.started_by(lhs)
+            
+    @predicate
     def func_S_s(self, lhs: TimeInterval_s) -> TimeInterval_S:
         return self.started_by(lhs)
+            
+    @predicate
     def func_d_D(self, lhs: TimeInterval_D) -> TimeInterval_d:
         return self.during(lhs)
+            
+    @predicate
     def func_d_F(self, lhs: TimeInterval_F) -> TimeInterval_d:
         return self.during(lhs)
+            
+    @predicate
     def func_d_M(self, lhs: TimeInterval_M) -> TimeInterval_d:
         return self.during(lhs)
+            
+    @predicate
     def func_d_O(self, lhs: TimeInterval_O) -> TimeInterval_d:
         return self.during(lhs)
+            
+    @predicate
     def func_d_P(self, lhs: TimeInterval_P) -> TimeInterval_d:
         return self.during(lhs)
+            
+    @predicate
     def func_d_S(self, lhs: TimeInterval_S) -> TimeInterval_d:
         return self.during(lhs)
+            
+    @predicate
     def func_d_m(self, lhs: TimeInterval_m) -> TimeInterval_d:
         return self.during(lhs)
+            
+    @predicate
     def func_d_o(self, lhs: TimeInterval_o) -> TimeInterval_d:
         return self.during(lhs)
+            
+    @predicate
     def func_d_p(self, lhs: TimeInterval_p) -> TimeInterval_d:
         return self.during(lhs)
+            
+    @predicate
+    def func_e_D(self, lhs: TimeInterval_D) -> TimeInterval_e:
+        return self.equals(lhs)
+            
+    @predicate
+    def func_e_F(self, lhs: TimeInterval_F) -> TimeInterval_e:
+        return self.equals(lhs)
+            
+    @predicate
+    def func_e_M(self, lhs: TimeInterval_M) -> TimeInterval_e:
+        return self.equals(lhs)
+            
+    @predicate
+    def func_e_O(self, lhs: TimeInterval_O) -> TimeInterval_e:
+        return self.equals(lhs)
+            
+    @predicate
+    def func_e_P(self, lhs: TimeInterval_P) -> TimeInterval_e:
+        return self.equals(lhs)
+            
+    @predicate
+    def func_e_S(self, lhs: TimeInterval_S) -> TimeInterval_e:
+        return self.equals(lhs)
+            
+    @predicate
+    def func_e_d(self, lhs: TimeInterval_d) -> TimeInterval_e:
+        return self.equals(lhs)
+            
+    @predicate
+    def func_e_f(self, lhs: TimeInterval_f) -> TimeInterval_e:
+        return self.equals(lhs)
+            
+    @predicate
+    def func_e_m(self, lhs: TimeInterval_m) -> TimeInterval_e:
+        return self.equals(lhs)
+            
+    @predicate
+    def func_e_o(self, lhs: TimeInterval_o) -> TimeInterval_e:
+        return self.equals(lhs)
+            
+    @predicate
+    def func_e_p(self, lhs: TimeInterval_p) -> TimeInterval_e:
+        return self.equals(lhs)
+            
+    @predicate
+    def func_e_s(self, lhs: TimeInterval_s) -> TimeInterval_e:
+        return self.equals(lhs)
+            
+    @predicate
     def func_f_D(self, lhs: TimeInterval_D) -> TimeInterval_f:
         return self.finishes(lhs)
+            
+    @predicate
     def func_f_F(self, lhs: TimeInterval_F) -> TimeInterval_f:
         return self.finishes(lhs)
+            
+    @predicate
     def func_f_M(self, lhs: TimeInterval_M) -> TimeInterval_f:
         return self.finishes(lhs)
+            
+    @predicate
     def func_f_O(self, lhs: TimeInterval_O) -> TimeInterval_f:
         return self.finishes(lhs)
+            
+    @predicate
     def func_f_P(self, lhs: TimeInterval_P) -> TimeInterval_f:
         return self.finishes(lhs)
+            
+    @predicate
     def func_f_S(self, lhs: TimeInterval_S) -> TimeInterval_f:
         return self.finishes(lhs)
+            
+    @predicate
     def func_f_d(self, lhs: TimeInterval_d) -> TimeInterval_f:
         return self.finishes(lhs)
+            
+    @predicate
     def func_f_m(self, lhs: TimeInterval_m) -> TimeInterval_f:
         return self.finishes(lhs)
+            
+    @predicate
     def func_f_o(self, lhs: TimeInterval_o) -> TimeInterval_f:
         return self.finishes(lhs)
+            
+    @predicate
     def func_f_p(self, lhs: TimeInterval_p) -> TimeInterval_f:
         return self.finishes(lhs)
+            
+    @predicate
     def func_f_s(self, lhs: TimeInterval_s) -> TimeInterval_f:
         return self.finishes(lhs)
-    def func_intersection(self, lhs: TimeInterval, rhs: TimeInterval) -> InterTimeInterval:
-        return self.intersection(lhs, rhs)
+            
+    @predicate
     def func_m_D(self, lhs: TimeInterval_D) -> TimeInterval_m:
         return self.meets(lhs)
+            
+    @predicate
     def func_m_F(self, lhs: TimeInterval_F) -> TimeInterval_m:
         return self.meets(lhs)
+            
+    @predicate
     def func_m_M(self, lhs: TimeInterval_M) -> TimeInterval_m:
         return self.meets(lhs)
+            
+    @predicate
     def func_m_O(self, lhs: TimeInterval_O) -> TimeInterval_m:
         return self.meets(lhs)
+            
+    @predicate
     def func_m_P(self, lhs: TimeInterval_P) -> TimeInterval_m:
         return self.meets(lhs)
+            
+    @predicate
     def func_m_d(self, lhs: TimeInterval_d) -> TimeInterval_m:
         return self.meets(lhs)
+            
+    @predicate
     def func_m_f(self, lhs: TimeInterval_f) -> TimeInterval_m:
         return self.meets(lhs)
+            
+    @predicate
     def func_m_m(self, lhs: TimeInterval_m) -> TimeInterval_m:
         return self.meets(lhs)
+            
+    @predicate
     def func_m_o(self, lhs: TimeInterval_o) -> TimeInterval_m:
         return self.meets(lhs)
+            
+    @predicate
     def func_m_p(self, lhs: TimeInterval_p) -> TimeInterval_m:
         return self.meets(lhs)
+            
+    @predicate
     def func_o_D(self, lhs: TimeInterval_D) -> TimeInterval_o:
         return self.overlaps(lhs)
+            
+    @predicate
     def func_o_F(self, lhs: TimeInterval_F) -> TimeInterval_o:
         return self.overlaps(lhs)
+            
+    @predicate
     def func_o_M(self, lhs: TimeInterval_M) -> TimeInterval_o:
         return self.overlaps(lhs)
+            
+    @predicate
     def func_o_O(self, lhs: TimeInterval_O) -> TimeInterval_o:
         return self.overlaps(lhs)
+            
+    @predicate
     def func_o_P(self, lhs: TimeInterval_P) -> TimeInterval_o:
         return self.overlaps(lhs)
+            
+    @predicate
     def func_o_S(self, lhs: TimeInterval_S) -> TimeInterval_o:
         return self.overlaps(lhs)
+            
+    @predicate
     def func_o_d(self, lhs: TimeInterval_d) -> TimeInterval_o:
         return self.overlaps(lhs)
+            
+    @predicate
     def func_o_f(self, lhs: TimeInterval_f) -> TimeInterval_o:
         return self.overlaps(lhs)
+            
+    @predicate
     def func_o_m(self, lhs: TimeInterval_m) -> TimeInterval_o:
         return self.overlaps(lhs)
+            
+    @predicate
     def func_o_o(self, lhs: TimeInterval_o) -> TimeInterval_o:
         return self.overlaps(lhs)
+            
+    @predicate
     def func_o_p(self, lhs: TimeInterval_p) -> TimeInterval_o:
         return self.overlaps(lhs)
+            
+    @predicate
     def func_p_M(self, lhs: TimeInterval_M) -> TimeInterval_p:
         return self.precedes(lhs)
+            
+    @predicate
     def func_p_O(self, lhs: TimeInterval_O) -> TimeInterval_p:
         return self.precedes(lhs)
+            
+    @predicate
     def func_p_P(self, lhs: TimeInterval_P) -> TimeInterval_p:
         return self.precedes(lhs)
+            
+    @predicate
     def func_p_d(self, lhs: TimeInterval_d) -> TimeInterval_p:
         return self.precedes(lhs)
+            
+    @predicate
     def func_p_f(self, lhs: TimeInterval_f) -> TimeInterval_p:
         return self.precedes(lhs)
+            
+    @predicate
     def func_s_D(self, lhs: TimeInterval_D) -> TimeInterval_s:
         return self.starts(lhs)
+            
+    @predicate
     def func_s_F(self, lhs: TimeInterval_F) -> TimeInterval_s:
         return self.starts(lhs)
+            
+    @predicate
     def func_s_M(self, lhs: TimeInterval_M) -> TimeInterval_s:
         return self.starts(lhs)
+            
+    @predicate
     def func_s_O(self, lhs: TimeInterval_O) -> TimeInterval_s:
         return self.starts(lhs)
+            
+    @predicate
     def func_s_P(self, lhs: TimeInterval_P) -> TimeInterval_s:
         return self.starts(lhs)
+            
+    @predicate
     def func_s_S(self, lhs: TimeInterval_S) -> TimeInterval_s:
         return self.starts(lhs)
+            
+    @predicate
     def func_s_d(self, lhs: TimeInterval_d) -> TimeInterval_s:
         return self.starts(lhs)
+            
+    @predicate
     def func_s_f(self, lhs: TimeInterval_f) -> TimeInterval_s:
         return self.starts(lhs)
+            
+    @predicate
     def func_s_m(self, lhs: TimeInterval_m) -> TimeInterval_s:
         return self.starts(lhs)
+            
+    @predicate
     def func_s_o(self, lhs: TimeInterval_o) -> TimeInterval_s:
         return self.starts(lhs)
+            
+    @predicate
     def func_s_p(self, lhs: TimeInterval_p) -> TimeInterval_s:
         return self.starts(lhs)
-    def func_union(self, lhs: TimeInterval, rhs: TimeInterval) -> InterTimeInterval:
-        return self.union(lhs, rhs)
-    def reset(self, lhs: InterTimeInterval) -> TimeInterval:
-        return lhs
-    def start_D(self, lhs: TimeInterval_D) -> TimeInterval:
-        return self.during(lhs)
-    def start_D(self, lhs: TimeInterval_D) -> TimeInterval:
-        return self.finished_by(lhs)
-    def start_D(self, lhs: TimeInterval_D) -> TimeInterval:
-        return self.finishes(lhs)
-    def start_D(self, lhs: TimeInterval_D) -> TimeInterval:
-        return self.meets(lhs)
-    def start_D(self, lhs: TimeInterval_D) -> TimeInterval:
-        return self.met_by(lhs)
-    def start_D(self, lhs: TimeInterval_D) -> TimeInterval:
-        return self.overlapped_by(lhs)
-    def start_D(self, lhs: TimeInterval_D) -> TimeInterval:
-        return self.overlaps(lhs)
-    def start_D(self, lhs: TimeInterval_D) -> TimeInterval:
-        return self.started_by(lhs)
-    def start_D(self, lhs: TimeInterval_D) -> TimeInterval:
-        return self.starts(lhs)
-    def start_F(self, lhs: TimeInterval_F) -> TimeInterval:
-        return self.during(lhs)
-    def start_F(self, lhs: TimeInterval_F) -> TimeInterval:
-        return self.finishes(lhs)
-    def start_F(self, lhs: TimeInterval_F) -> TimeInterval:
-        return self.meets(lhs)
-    def start_F(self, lhs: TimeInterval_F) -> TimeInterval:
-        return self.overlapped_by(lhs)
-    def start_F(self, lhs: TimeInterval_F) -> TimeInterval:
-        return self.overlaps(lhs)
-    def start_F(self, lhs: TimeInterval_F) -> TimeInterval:
-        return self.started_by(lhs)
-    def start_F(self, lhs: TimeInterval_F) -> TimeInterval:
-        return self.starts(lhs)
-    def start_M(self, lhs: TimeInterval_M) -> TimeInterval:
+    @predicate
+    def func_intersection_2(self , arg0: InterTimeInterval, arg1: InterTimeInterval) -> TimeInterval:
+        return self.intersection(arg0, arg1)
+    @predicate
+    def func_intersection_3(self , arg0: InterTimeInterval, arg1: InterTimeInterval, arg2: InterTimeInterval) -> TimeInterval:
+        return self.intersection(arg2, self.intersection(arg0, arg1))
+    @predicate
+    def func_union_2(self , arg0: InterTimeInterval, arg1: InterTimeInterval) -> TimeInterval:
+        return self.union(arg0, arg1)
+    @predicate
+    def func_union_3(self , arg0: InterTimeInterval, arg1: InterTimeInterval, arg2: InterTimeInterval) -> TimeInterval:
+        return self.union(arg2, self.union(arg0, arg1))
+    @predicate
+    def op1_D(self, lhs: TimeInterval) -> InterTimeInterval:
         return self.contains(lhs)
-    def start_M(self, lhs: TimeInterval_M) -> TimeInterval:
-        return self.during(lhs)
-    def start_M(self, lhs: TimeInterval_M) -> TimeInterval:
+    @predicate
+    def op1_F(self, lhs: TimeInterval) -> InterTimeInterval:
         return self.finished_by(lhs)
-    def start_M(self, lhs: TimeInterval_M) -> TimeInterval:
-        return self.finishes(lhs)
-    def start_M(self, lhs: TimeInterval_M) -> TimeInterval:
-        return self.meets(lhs)
-    def start_M(self, lhs: TimeInterval_M) -> TimeInterval:
+    @predicate
+    def op1_M(self, lhs: TimeInterval) -> InterTimeInterval:
         return self.met_by(lhs)
-    def start_M(self, lhs: TimeInterval_M) -> TimeInterval:
+    @predicate
+    def op1_O(self, lhs: TimeInterval) -> InterTimeInterval:
         return self.overlapped_by(lhs)
-    def start_M(self, lhs: TimeInterval_M) -> TimeInterval:
-        return self.overlaps(lhs)
-    def start_M(self, lhs: TimeInterval_M) -> TimeInterval:
-        return self.precedes(lhs)
-    def start_M(self, lhs: TimeInterval_M) -> TimeInterval:
-        return self.started_by(lhs)
-    def start_M(self, lhs: TimeInterval_M) -> TimeInterval:
-        return self.starts(lhs)
-    def start_O(self, lhs: TimeInterval_O) -> TimeInterval:
-        return self.contains(lhs)
-    def start_O(self, lhs: TimeInterval_O) -> TimeInterval:
-        return self.during(lhs)
-    def start_O(self, lhs: TimeInterval_O) -> TimeInterval:
-        return self.finished_by(lhs)
-    def start_O(self, lhs: TimeInterval_O) -> TimeInterval:
-        return self.finishes(lhs)
-    def start_O(self, lhs: TimeInterval_O) -> TimeInterval:
-        return self.meets(lhs)
-    def start_O(self, lhs: TimeInterval_O) -> TimeInterval:
-        return self.met_by(lhs)
-    def start_O(self, lhs: TimeInterval_O) -> TimeInterval:
-        return self.overlapped_by(lhs)
-    def start_O(self, lhs: TimeInterval_O) -> TimeInterval:
-        return self.overlaps(lhs)
-    def start_O(self, lhs: TimeInterval_O) -> TimeInterval:
-        return self.precedes(lhs)
-    def start_O(self, lhs: TimeInterval_O) -> TimeInterval:
-        return self.started_by(lhs)
-    def start_O(self, lhs: TimeInterval_O) -> TimeInterval:
-        return self.starts(lhs)
-    def start_P(self, lhs: TimeInterval_P) -> TimeInterval:
-        return self.contains(lhs)
-    def start_P(self, lhs: TimeInterval_P) -> TimeInterval:
-        return self.during(lhs)
-    def start_P(self, lhs: TimeInterval_P) -> TimeInterval:
-        return self.finished_by(lhs)
-    def start_P(self, lhs: TimeInterval_P) -> TimeInterval:
-        return self.finishes(lhs)
-    def start_P(self, lhs: TimeInterval_P) -> TimeInterval:
-        return self.meets(lhs)
-    def start_P(self, lhs: TimeInterval_P) -> TimeInterval:
-        return self.met_by(lhs)
-    def start_P(self, lhs: TimeInterval_P) -> TimeInterval:
-        return self.overlapped_by(lhs)
-    def start_P(self, lhs: TimeInterval_P) -> TimeInterval:
-        return self.overlaps(lhs)
-    def start_P(self, lhs: TimeInterval_P) -> TimeInterval:
-        return self.precedes(lhs)
-    def start_P(self, lhs: TimeInterval_P) -> TimeInterval:
-        return self.started_by(lhs)
-    def start_P(self, lhs: TimeInterval_P) -> TimeInterval:
-        return self.starts(lhs)
-    def start_S(self, lhs: TimeInterval_S) -> TimeInterval:
-        return self.during(lhs)
-    def start_S(self, lhs: TimeInterval_S) -> TimeInterval:
-        return self.finished_by(lhs)
-    def start_S(self, lhs: TimeInterval_S) -> TimeInterval:
-        return self.finishes(lhs)
-    def start_S(self, lhs: TimeInterval_S) -> TimeInterval:
-        return self.met_by(lhs)
-    def start_S(self, lhs: TimeInterval_S) -> TimeInterval:
-        return self.overlapped_by(lhs)
-    def start_S(self, lhs: TimeInterval_S) -> TimeInterval:
-        return self.overlaps(lhs)
-    def start_S(self, lhs: TimeInterval_S) -> TimeInterval:
-        return self.starts(lhs)
-    def start_d(self, lhs: TimeInterval_d) -> TimeInterval:
-        return self.contains(lhs)
-    def start_d(self, lhs: TimeInterval_d) -> TimeInterval:
-        return self.finished_by(lhs)
-    def start_d(self, lhs: TimeInterval_d) -> TimeInterval:
-        return self.finishes(lhs)
-    def start_d(self, lhs: TimeInterval_d) -> TimeInterval:
-        return self.meets(lhs)
-    def start_d(self, lhs: TimeInterval_d) -> TimeInterval:
-        return self.met_by(lhs)
-    def start_d(self, lhs: TimeInterval_d) -> TimeInterval:
-        return self.overlapped_by(lhs)
-    def start_d(self, lhs: TimeInterval_d) -> TimeInterval:
-        return self.overlaps(lhs)
-    def start_d(self, lhs: TimeInterval_d) -> TimeInterval:
+    @predicate
+    def op1_P(self, lhs: TimeInterval) -> InterTimeInterval:
         return self.preceded_by(lhs)
-    def start_d(self, lhs: TimeInterval_d) -> TimeInterval:
+    @predicate
+    def op1_S(self, lhs: TimeInterval) -> InterTimeInterval:
+        return self.started_by(lhs)
+    @predicate
+    def op1_d(self, lhs: TimeInterval) -> InterTimeInterval:
+        return self.during(lhs)
+    @predicate
+    def op1_e(self, lhs: TimeInterval) -> InterTimeInterval:
+        return self.equals(lhs)
+    @predicate
+    def op1_f(self, lhs: TimeInterval) -> InterTimeInterval:
+        return self.finishes(lhs)
+    @predicate
+    def op1_m(self, lhs: TimeInterval) -> InterTimeInterval:
+        return self.meets(lhs)
+    @predicate
+    def op1_o(self, lhs: TimeInterval) -> InterTimeInterval:
+        return self.overlaps(lhs)
+    @predicate
+    def op1_p(self, lhs: TimeInterval) -> InterTimeInterval:
         return self.precedes(lhs)
-    def start_d(self, lhs: TimeInterval_d) -> TimeInterval:
-        return self.started_by(lhs)
-    def start_d(self, lhs: TimeInterval_d) -> TimeInterval:
+    @predicate
+    def op1_s(self, lhs: TimeInterval) -> InterTimeInterval:
         return self.starts(lhs)
-    def start_f(self, lhs: TimeInterval_f) -> TimeInterval:
+    @predicate
+    def op2_end_D_M(self, lhs: TimeInterval_M) -> InterTimeInterval:
         return self.contains(lhs)
-    def start_f(self, lhs: TimeInterval_f) -> TimeInterval:
+    @predicate
+    def op2_end_D_O(self, lhs: TimeInterval_O) -> InterTimeInterval:
+        return self.contains(lhs)
+    @predicate
+    def op2_end_D_P(self, lhs: TimeInterval_P) -> InterTimeInterval:
+        return self.contains(lhs)
+    @predicate
+    def op2_end_D_d(self, lhs: TimeInterval_d) -> InterTimeInterval:
+        return self.contains(lhs)
+    @predicate
+    def op2_end_D_f(self, lhs: TimeInterval_f) -> InterTimeInterval:
+        return self.contains(lhs)
+    @predicate
+    def op2_end_D_m(self, lhs: TimeInterval_m) -> InterTimeInterval:
+        return self.contains(lhs)
+    @predicate
+    def op2_end_D_o(self, lhs: TimeInterval_o) -> InterTimeInterval:
+        return self.contains(lhs)
+    @predicate
+    def op2_end_D_p(self, lhs: TimeInterval_p) -> InterTimeInterval:
+        return self.contains(lhs)
+    @predicate
+    def op2_end_D_s(self, lhs: TimeInterval_s) -> InterTimeInterval:
+        return self.contains(lhs)
+    @predicate
+    def op2_end_F_D(self, lhs: TimeInterval_D) -> InterTimeInterval:
         return self.finished_by(lhs)
-    def start_f(self, lhs: TimeInterval_f) -> TimeInterval:
+    @predicate
+    def op2_end_F_M(self, lhs: TimeInterval_M) -> InterTimeInterval:
+        return self.finished_by(lhs)
+    @predicate
+    def op2_end_F_O(self, lhs: TimeInterval_O) -> InterTimeInterval:
+        return self.finished_by(lhs)
+    @predicate
+    def op2_end_F_P(self, lhs: TimeInterval_P) -> InterTimeInterval:
+        return self.finished_by(lhs)
+    @predicate
+    def op2_end_F_S(self, lhs: TimeInterval_S) -> InterTimeInterval:
+        return self.finished_by(lhs)
+    @predicate
+    def op2_end_F_d(self, lhs: TimeInterval_d) -> InterTimeInterval:
+        return self.finished_by(lhs)
+    @predicate
+    def op2_end_F_f(self, lhs: TimeInterval_f) -> InterTimeInterval:
+        return self.finished_by(lhs)
+    @predicate
+    def op2_end_F_m(self, lhs: TimeInterval_m) -> InterTimeInterval:
+        return self.finished_by(lhs)
+    @predicate
+    def op2_end_F_o(self, lhs: TimeInterval_o) -> InterTimeInterval:
+        return self.finished_by(lhs)
+    @predicate
+    def op2_end_F_p(self, lhs: TimeInterval_p) -> InterTimeInterval:
+        return self.finished_by(lhs)
+    @predicate
+    def op2_end_F_s(self, lhs: TimeInterval_s) -> InterTimeInterval:
+        return self.finished_by(lhs)
+    @predicate
+    def op2_end_M_D(self, lhs: TimeInterval_D) -> InterTimeInterval:
+        return self.met_by(lhs)
+    @predicate
+    def op2_end_M_M(self, lhs: TimeInterval_M) -> InterTimeInterval:
+        return self.met_by(lhs)
+    @predicate
+    def op2_end_M_O(self, lhs: TimeInterval_O) -> InterTimeInterval:
+        return self.met_by(lhs)
+    @predicate
+    def op2_end_M_P(self, lhs: TimeInterval_P) -> InterTimeInterval:
+        return self.met_by(lhs)
+    @predicate
+    def op2_end_M_S(self, lhs: TimeInterval_S) -> InterTimeInterval:
+        return self.met_by(lhs)
+    @predicate
+    def op2_end_M_d(self, lhs: TimeInterval_d) -> InterTimeInterval:
+        return self.met_by(lhs)
+    @predicate
+    def op2_end_M_m(self, lhs: TimeInterval_m) -> InterTimeInterval:
+        return self.met_by(lhs)
+    @predicate
+    def op2_end_M_o(self, lhs: TimeInterval_o) -> InterTimeInterval:
+        return self.met_by(lhs)
+    @predicate
+    def op2_end_M_p(self, lhs: TimeInterval_p) -> InterTimeInterval:
+        return self.met_by(lhs)
+    @predicate
+    def op2_end_M_s(self, lhs: TimeInterval_s) -> InterTimeInterval:
+        return self.met_by(lhs)
+    @predicate
+    def op2_end_O_D(self, lhs: TimeInterval_D) -> InterTimeInterval:
+        return self.overlapped_by(lhs)
+    @predicate
+    def op2_end_O_F(self, lhs: TimeInterval_F) -> InterTimeInterval:
+        return self.overlapped_by(lhs)
+    @predicate
+    def op2_end_O_M(self, lhs: TimeInterval_M) -> InterTimeInterval:
+        return self.overlapped_by(lhs)
+    @predicate
+    def op2_end_O_O(self, lhs: TimeInterval_O) -> InterTimeInterval:
+        return self.overlapped_by(lhs)
+    @predicate
+    def op2_end_O_P(self, lhs: TimeInterval_P) -> InterTimeInterval:
+        return self.overlapped_by(lhs)
+    @predicate
+    def op2_end_O_S(self, lhs: TimeInterval_S) -> InterTimeInterval:
+        return self.overlapped_by(lhs)
+    @predicate
+    def op2_end_O_d(self, lhs: TimeInterval_d) -> InterTimeInterval:
+        return self.overlapped_by(lhs)
+    @predicate
+    def op2_end_O_m(self, lhs: TimeInterval_m) -> InterTimeInterval:
+        return self.overlapped_by(lhs)
+    @predicate
+    def op2_end_O_o(self, lhs: TimeInterval_o) -> InterTimeInterval:
+        return self.overlapped_by(lhs)
+    @predicate
+    def op2_end_O_p(self, lhs: TimeInterval_p) -> InterTimeInterval:
+        return self.overlapped_by(lhs)
+    @predicate
+    def op2_end_O_s(self, lhs: TimeInterval_s) -> InterTimeInterval:
+        return self.overlapped_by(lhs)
+    @predicate
+    def op2_end_P_d(self, lhs: TimeInterval_d) -> InterTimeInterval:
+        return self.preceded_by(lhs)
+    @predicate
+    def op2_end_P_m(self, lhs: TimeInterval_m) -> InterTimeInterval:
+        return self.preceded_by(lhs)
+    @predicate
+    def op2_end_P_o(self, lhs: TimeInterval_o) -> InterTimeInterval:
+        return self.preceded_by(lhs)
+    @predicate
+    def op2_end_P_p(self, lhs: TimeInterval_p) -> InterTimeInterval:
+        return self.preceded_by(lhs)
+    @predicate
+    def op2_end_P_s(self, lhs: TimeInterval_s) -> InterTimeInterval:
+        return self.preceded_by(lhs)
+    @predicate
+    def op2_end_S_D(self, lhs: TimeInterval_D) -> InterTimeInterval:
+        return self.started_by(lhs)
+    @predicate
+    def op2_end_S_F(self, lhs: TimeInterval_F) -> InterTimeInterval:
+        return self.started_by(lhs)
+    @predicate
+    def op2_end_S_M(self, lhs: TimeInterval_M) -> InterTimeInterval:
+        return self.started_by(lhs)
+    @predicate
+    def op2_end_S_O(self, lhs: TimeInterval_O) -> InterTimeInterval:
+        return self.started_by(lhs)
+    @predicate
+    def op2_end_S_P(self, lhs: TimeInterval_P) -> InterTimeInterval:
+        return self.started_by(lhs)
+    @predicate
+    def op2_end_S_d(self, lhs: TimeInterval_d) -> InterTimeInterval:
+        return self.started_by(lhs)
+    @predicate
+    def op2_end_S_f(self, lhs: TimeInterval_f) -> InterTimeInterval:
+        return self.started_by(lhs)
+    @predicate
+    def op2_end_S_m(self, lhs: TimeInterval_m) -> InterTimeInterval:
+        return self.started_by(lhs)
+    @predicate
+    def op2_end_S_o(self, lhs: TimeInterval_o) -> InterTimeInterval:
+        return self.started_by(lhs)
+    @predicate
+    def op2_end_S_p(self, lhs: TimeInterval_p) -> InterTimeInterval:
+        return self.started_by(lhs)
+    @predicate
+    def op2_end_S_s(self, lhs: TimeInterval_s) -> InterTimeInterval:
+        return self.started_by(lhs)
+    @predicate
+    def op2_end_d_D(self, lhs: TimeInterval_D) -> InterTimeInterval:
+        return self.during(lhs)
+    @predicate
+    def op2_end_d_F(self, lhs: TimeInterval_F) -> InterTimeInterval:
+        return self.during(lhs)
+    @predicate
+    def op2_end_d_M(self, lhs: TimeInterval_M) -> InterTimeInterval:
+        return self.during(lhs)
+    @predicate
+    def op2_end_d_O(self, lhs: TimeInterval_O) -> InterTimeInterval:
+        return self.during(lhs)
+    @predicate
+    def op2_end_d_P(self, lhs: TimeInterval_P) -> InterTimeInterval:
+        return self.during(lhs)
+    @predicate
+    def op2_end_d_S(self, lhs: TimeInterval_S) -> InterTimeInterval:
+        return self.during(lhs)
+    @predicate
+    def op2_end_d_m(self, lhs: TimeInterval_m) -> InterTimeInterval:
+        return self.during(lhs)
+    @predicate
+    def op2_end_d_o(self, lhs: TimeInterval_o) -> InterTimeInterval:
+        return self.during(lhs)
+    @predicate
+    def op2_end_d_p(self, lhs: TimeInterval_p) -> InterTimeInterval:
+        return self.during(lhs)
+    @predicate
+    def op2_end_e_D(self, lhs: TimeInterval_D) -> InterTimeInterval:
+        return self.equals(lhs)
+    @predicate
+    def op2_end_e_F(self, lhs: TimeInterval_F) -> InterTimeInterval:
+        return self.equals(lhs)
+    @predicate
+    def op2_end_e_M(self, lhs: TimeInterval_M) -> InterTimeInterval:
+        return self.equals(lhs)
+    @predicate
+    def op2_end_e_O(self, lhs: TimeInterval_O) -> InterTimeInterval:
+        return self.equals(lhs)
+    @predicate
+    def op2_end_e_P(self, lhs: TimeInterval_P) -> InterTimeInterval:
+        return self.equals(lhs)
+    @predicate
+    def op2_end_e_S(self, lhs: TimeInterval_S) -> InterTimeInterval:
+        return self.equals(lhs)
+    @predicate
+    def op2_end_e_d(self, lhs: TimeInterval_d) -> InterTimeInterval:
+        return self.equals(lhs)
+    @predicate
+    def op2_end_e_f(self, lhs: TimeInterval_f) -> InterTimeInterval:
+        return self.equals(lhs)
+    @predicate
+    def op2_end_e_m(self, lhs: TimeInterval_m) -> InterTimeInterval:
+        return self.equals(lhs)
+    @predicate
+    def op2_end_e_o(self, lhs: TimeInterval_o) -> InterTimeInterval:
+        return self.equals(lhs)
+    @predicate
+    def op2_end_e_p(self, lhs: TimeInterval_p) -> InterTimeInterval:
+        return self.equals(lhs)
+    @predicate
+    def op2_end_e_s(self, lhs: TimeInterval_s) -> InterTimeInterval:
+        return self.equals(lhs)
+    @predicate
+    def op2_end_f_D(self, lhs: TimeInterval_D) -> InterTimeInterval:
+        return self.finishes(lhs)
+    @predicate
+    def op2_end_f_F(self, lhs: TimeInterval_F) -> InterTimeInterval:
+        return self.finishes(lhs)
+    @predicate
+    def op2_end_f_M(self, lhs: TimeInterval_M) -> InterTimeInterval:
+        return self.finishes(lhs)
+    @predicate
+    def op2_end_f_O(self, lhs: TimeInterval_O) -> InterTimeInterval:
+        return self.finishes(lhs)
+    @predicate
+    def op2_end_f_P(self, lhs: TimeInterval_P) -> InterTimeInterval:
+        return self.finishes(lhs)
+    @predicate
+    def op2_end_f_S(self, lhs: TimeInterval_S) -> InterTimeInterval:
+        return self.finishes(lhs)
+    @predicate
+    def op2_end_f_d(self, lhs: TimeInterval_d) -> InterTimeInterval:
+        return self.finishes(lhs)
+    @predicate
+    def op2_end_f_m(self, lhs: TimeInterval_m) -> InterTimeInterval:
+        return self.finishes(lhs)
+    @predicate
+    def op2_end_f_o(self, lhs: TimeInterval_o) -> InterTimeInterval:
+        return self.finishes(lhs)
+    @predicate
+    def op2_end_f_p(self, lhs: TimeInterval_p) -> InterTimeInterval:
+        return self.finishes(lhs)
+    @predicate
+    def op2_end_f_s(self, lhs: TimeInterval_s) -> InterTimeInterval:
+        return self.finishes(lhs)
+    @predicate
+    def op2_end_m_D(self, lhs: TimeInterval_D) -> InterTimeInterval:
         return self.meets(lhs)
-    def start_f(self, lhs: TimeInterval_f) -> TimeInterval:
+    @predicate
+    def op2_end_m_F(self, lhs: TimeInterval_F) -> InterTimeInterval:
+        return self.meets(lhs)
+    @predicate
+    def op2_end_m_M(self, lhs: TimeInterval_M) -> InterTimeInterval:
+        return self.meets(lhs)
+    @predicate
+    def op2_end_m_O(self, lhs: TimeInterval_O) -> InterTimeInterval:
+        return self.meets(lhs)
+    @predicate
+    def op2_end_m_P(self, lhs: TimeInterval_P) -> InterTimeInterval:
+        return self.meets(lhs)
+    @predicate
+    def op2_end_m_d(self, lhs: TimeInterval_d) -> InterTimeInterval:
+        return self.meets(lhs)
+    @predicate
+    def op2_end_m_f(self, lhs: TimeInterval_f) -> InterTimeInterval:
+        return self.meets(lhs)
+    @predicate
+    def op2_end_m_m(self, lhs: TimeInterval_m) -> InterTimeInterval:
+        return self.meets(lhs)
+    @predicate
+    def op2_end_m_o(self, lhs: TimeInterval_o) -> InterTimeInterval:
+        return self.meets(lhs)
+    @predicate
+    def op2_end_m_p(self, lhs: TimeInterval_p) -> InterTimeInterval:
+        return self.meets(lhs)
+    @predicate
+    def op2_end_o_D(self, lhs: TimeInterval_D) -> InterTimeInterval:
         return self.overlaps(lhs)
-    def start_f(self, lhs: TimeInterval_f) -> TimeInterval:
+    @predicate
+    def op2_end_o_F(self, lhs: TimeInterval_F) -> InterTimeInterval:
+        return self.overlaps(lhs)
+    @predicate
+    def op2_end_o_M(self, lhs: TimeInterval_M) -> InterTimeInterval:
+        return self.overlaps(lhs)
+    @predicate
+    def op2_end_o_O(self, lhs: TimeInterval_O) -> InterTimeInterval:
+        return self.overlaps(lhs)
+    @predicate
+    def op2_end_o_P(self, lhs: TimeInterval_P) -> InterTimeInterval:
+        return self.overlaps(lhs)
+    @predicate
+    def op2_end_o_S(self, lhs: TimeInterval_S) -> InterTimeInterval:
+        return self.overlaps(lhs)
+    @predicate
+    def op2_end_o_d(self, lhs: TimeInterval_d) -> InterTimeInterval:
+        return self.overlaps(lhs)
+    @predicate
+    def op2_end_o_f(self, lhs: TimeInterval_f) -> InterTimeInterval:
+        return self.overlaps(lhs)
+    @predicate
+    def op2_end_o_m(self, lhs: TimeInterval_m) -> InterTimeInterval:
+        return self.overlaps(lhs)
+    @predicate
+    def op2_end_o_o(self, lhs: TimeInterval_o) -> InterTimeInterval:
+        return self.overlaps(lhs)
+    @predicate
+    def op2_end_o_p(self, lhs: TimeInterval_p) -> InterTimeInterval:
+        return self.overlaps(lhs)
+    @predicate
+    def op2_end_p_M(self, lhs: TimeInterval_M) -> InterTimeInterval:
         return self.precedes(lhs)
-    def start_f(self, lhs: TimeInterval_f) -> TimeInterval:
-        return self.started_by(lhs)
-    def start_f(self, lhs: TimeInterval_f) -> TimeInterval:
-        return self.starts(lhs)
-    def start_m(self, lhs: TimeInterval_m) -> TimeInterval:
-        return self.contains(lhs)
-    def start_m(self, lhs: TimeInterval_m) -> TimeInterval:
-        return self.during(lhs)
-    def start_m(self, lhs: TimeInterval_m) -> TimeInterval:
-        return self.finished_by(lhs)
-    def start_m(self, lhs: TimeInterval_m) -> TimeInterval:
-        return self.finishes(lhs)
-    def start_m(self, lhs: TimeInterval_m) -> TimeInterval:
-        return self.meets(lhs)
-    def start_m(self, lhs: TimeInterval_m) -> TimeInterval:
-        return self.met_by(lhs)
-    def start_m(self, lhs: TimeInterval_m) -> TimeInterval:
-        return self.overlapped_by(lhs)
-    def start_m(self, lhs: TimeInterval_m) -> TimeInterval:
-        return self.overlaps(lhs)
-    def start_m(self, lhs: TimeInterval_m) -> TimeInterval:
-        return self.preceded_by(lhs)
-    def start_m(self, lhs: TimeInterval_m) -> TimeInterval:
-        return self.started_by(lhs)
-    def start_m(self, lhs: TimeInterval_m) -> TimeInterval:
-        return self.starts(lhs)
-    def start_o(self, lhs: TimeInterval_o) -> TimeInterval:
-        return self.contains(lhs)
-    def start_o(self, lhs: TimeInterval_o) -> TimeInterval:
-        return self.during(lhs)
-    def start_o(self, lhs: TimeInterval_o) -> TimeInterval:
-        return self.finished_by(lhs)
-    def start_o(self, lhs: TimeInterval_o) -> TimeInterval:
-        return self.finishes(lhs)
-    def start_o(self, lhs: TimeInterval_o) -> TimeInterval:
-        return self.meets(lhs)
-    def start_o(self, lhs: TimeInterval_o) -> TimeInterval:
-        return self.met_by(lhs)
-    def start_o(self, lhs: TimeInterval_o) -> TimeInterval:
-        return self.overlapped_by(lhs)
-    def start_o(self, lhs: TimeInterval_o) -> TimeInterval:
-        return self.overlaps(lhs)
-    def start_o(self, lhs: TimeInterval_o) -> TimeInterval:
-        return self.preceded_by(lhs)
-    def start_o(self, lhs: TimeInterval_o) -> TimeInterval:
-        return self.started_by(lhs)
-    def start_o(self, lhs: TimeInterval_o) -> TimeInterval:
-        return self.starts(lhs)
-    def start_p(self, lhs: TimeInterval_p) -> TimeInterval:
-        return self.contains(lhs)
-    def start_p(self, lhs: TimeInterval_p) -> TimeInterval:
-        return self.during(lhs)
-    def start_p(self, lhs: TimeInterval_p) -> TimeInterval:
-        return self.finished_by(lhs)
-    def start_p(self, lhs: TimeInterval_p) -> TimeInterval:
-        return self.finishes(lhs)
-    def start_p(self, lhs: TimeInterval_p) -> TimeInterval:
-        return self.meets(lhs)
-    def start_p(self, lhs: TimeInterval_p) -> TimeInterval:
-        return self.met_by(lhs)
-    def start_p(self, lhs: TimeInterval_p) -> TimeInterval:
-        return self.overlapped_by(lhs)
-    def start_p(self, lhs: TimeInterval_p) -> TimeInterval:
-        return self.overlaps(lhs)
-    def start_p(self, lhs: TimeInterval_p) -> TimeInterval:
-        return self.preceded_by(lhs)
-    def start_p(self, lhs: TimeInterval_p) -> TimeInterval:
-        return self.started_by(lhs)
-    def start_p(self, lhs: TimeInterval_p) -> TimeInterval:
-        return self.starts(lhs)
-    def start_s(self, lhs: TimeInterval_s) -> TimeInterval:
-        return self.contains(lhs)
-    def start_s(self, lhs: TimeInterval_s) -> TimeInterval:
-        return self.finished_by(lhs)
-    def start_s(self, lhs: TimeInterval_s) -> TimeInterval:
-        return self.finishes(lhs)
-    def start_s(self, lhs: TimeInterval_s) -> TimeInterval:
-        return self.met_by(lhs)
-    def start_s(self, lhs: TimeInterval_s) -> TimeInterval:
-        return self.overlapped_by(lhs)
-    def start_s(self, lhs: TimeInterval_s) -> TimeInterval:
-        return self.preceded_by(lhs)
-    def start_s(self, lhs: TimeInterval_s) -> TimeInterval:
-        return self.started_by(lhs)
-    def term_D(self, lhs: InterTimeInterval) -> TimeInterval_D:
-        return self.contains(lhs)
-    def term_F(self, lhs: InterTimeInterval) -> TimeInterval_F:
-        return self.finished_by(lhs)
-    def term_M(self, lhs: InterTimeInterval) -> TimeInterval_M:
-        return self.met_by(lhs)
-    def term_O(self, lhs: InterTimeInterval) -> TimeInterval_O:
-        return self.overlapped_by(lhs)
-    def term_P(self, lhs: InterTimeInterval) -> TimeInterval_P:
-        return self.preceded_by(lhs)
-    def term_S(self, lhs: InterTimeInterval) -> TimeInterval_S:
-        return self.started_by(lhs)
-    def term_d(self, lhs: InterTimeInterval) -> TimeInterval_d:
-        return self.during(lhs)
-    def term_f(self, lhs: InterTimeInterval) -> TimeInterval_f:
-        return self.finishes(lhs)
-    def term_m(self, lhs: InterTimeInterval) -> TimeInterval_m:
-        return self.meets(lhs)
-    def term_o(self, lhs: InterTimeInterval) -> TimeInterval_o:
-        return self.overlaps(lhs)
-    def term_p(self, lhs: InterTimeInterval) -> TimeInterval_p:
+    @predicate
+    def op2_end_p_O(self, lhs: TimeInterval_O) -> InterTimeInterval:
         return self.precedes(lhs)
-    def term_s(self, lhs: InterTimeInterval) -> TimeInterval_s:
+    @predicate
+    def op2_end_p_P(self, lhs: TimeInterval_P) -> InterTimeInterval:
+        return self.precedes(lhs)
+    @predicate
+    def op2_end_p_d(self, lhs: TimeInterval_d) -> InterTimeInterval:
+        return self.precedes(lhs)
+    @predicate
+    def op2_end_p_f(self, lhs: TimeInterval_f) -> InterTimeInterval:
+        return self.precedes(lhs)
+    @predicate
+    def op2_end_s_D(self, lhs: TimeInterval_D) -> InterTimeInterval:
+        return self.starts(lhs)
+    @predicate
+    def op2_end_s_F(self, lhs: TimeInterval_F) -> InterTimeInterval:
+        return self.starts(lhs)
+    @predicate
+    def op2_end_s_M(self, lhs: TimeInterval_M) -> InterTimeInterval:
+        return self.starts(lhs)
+    @predicate
+    def op2_end_s_O(self, lhs: TimeInterval_O) -> InterTimeInterval:
+        return self.starts(lhs)
+    @predicate
+    def op2_end_s_P(self, lhs: TimeInterval_P) -> InterTimeInterval:
+        return self.starts(lhs)
+    @predicate
+    def op2_end_s_S(self, lhs: TimeInterval_S) -> InterTimeInterval:
+        return self.starts(lhs)
+    @predicate
+    def op2_end_s_d(self, lhs: TimeInterval_d) -> InterTimeInterval:
+        return self.starts(lhs)
+    @predicate
+    def op2_end_s_f(self, lhs: TimeInterval_f) -> InterTimeInterval:
+        return self.starts(lhs)
+    @predicate
+    def op2_end_s_m(self, lhs: TimeInterval_m) -> InterTimeInterval:
+        return self.starts(lhs)
+    @predicate
+    def op2_end_s_o(self, lhs: TimeInterval_o) -> InterTimeInterval:
+        return self.starts(lhs)
+    @predicate
+    def op2_end_s_p(self, lhs: TimeInterval_p) -> InterTimeInterval:
+        return self.starts(lhs)
+    @predicate
+    def op2_start_D(self, lhs: TimeInterval) -> TimeInterval_D:
+        return self.contains(lhs)
+    @predicate
+    def op2_start_F(self, lhs: TimeInterval) -> TimeInterval_F:
+        return self.finished_by(lhs)
+    @predicate
+    def op2_start_M(self, lhs: TimeInterval) -> TimeInterval_M:
+        return self.met_by(lhs)
+    @predicate
+    def op2_start_O(self, lhs: TimeInterval) -> TimeInterval_O:
+        return self.overlapped_by(lhs)
+    @predicate
+    def op2_start_P(self, lhs: TimeInterval) -> TimeInterval_P:
+        return self.preceded_by(lhs)
+    @predicate
+    def op2_start_S(self, lhs: TimeInterval) -> TimeInterval_S:
+        return self.started_by(lhs)
+    @predicate
+    def op2_start_d(self, lhs: TimeInterval) -> TimeInterval_d:
+        return self.during(lhs)
+    @predicate
+    def op2_start_e(self, lhs: TimeInterval) -> TimeInterval_e:
+        return self.equals(lhs)
+    @predicate
+    def op2_start_f(self, lhs: TimeInterval) -> TimeInterval_f:
+        return self.finishes(lhs)
+    @predicate
+    def op2_start_m(self, lhs: TimeInterval) -> TimeInterval_m:
+        return self.meets(lhs)
+    @predicate
+    def op2_start_o(self, lhs: TimeInterval) -> TimeInterval_o:
+        return self.overlaps(lhs)
+    @predicate
+    def op2_start_p(self, lhs: TimeInterval) -> TimeInterval_p:
+        return self.precedes(lhs)
+    @predicate
+    def op2_start_s(self, lhs: TimeInterval) -> TimeInterval_s:
         return self.starts(lhs)
